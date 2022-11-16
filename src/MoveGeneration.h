@@ -6,19 +6,35 @@
 #define BOOMCHESS_SRC_MOVEGENERATION_H_
 
 #include <array>
+#include <list>
 #include "Move.h"
 #include "Board.h"
 
-
 class MoveGeneration {
  public:
-    std::array<Move, 300> moves;
-    int n;
+    std::array<std::array<Move, 300>, MAX_DEPTH> moves {};
+    std::array<int, MAX_DEPTH> n {};
 
-    MoveGeneration() : n(0) {};
     void generateMoves(const Board &board);
 
+    int size(){
+        return n[curDepth];
+    }
+    void increaseDepth(){
+        curDepth++;
+    }
+    void decreaseDepth(){
+        curDepth--;
+    }
+    void setDepth(int depth){
+        curDepth = depth;
+    }
+    Move &operator[](int idx){
+        return moves[curDepth][idx];
+    }
+
  private:
+    int curDepth = 0;
     void generatePawnMoves(const Board &board);
     void generateBishopMoves(const Board &board);
     void generateKnightMoves(const Board &board);
@@ -27,9 +43,8 @@ class MoveGeneration {
     void generateKingMoves(const Board &board);
     void generateSlidingMoves(const Board &board, int startingSquare, int direction);
     void generateCastle(const Board &board, int kingSquare, int castleDirection);
-
     void addMove(int from, int to, int flags = 0) {
-        moves[n++] = Move(from, to, flags);
+        moves[curDepth][n[curDepth]++] = Move(from, to, flags);
     }
 };
 

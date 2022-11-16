@@ -5,6 +5,13 @@
 #include "MoveGeneration.h"
 
 void MoveGeneration::generateMoves(const Board &board) {
+    n[curDepth] = 0;
+
+    //no legal moves if king ded
+    if(board.pieceCounts[board.moveColor][KING] == 0){
+        return;
+    }
+
     generatePawnMoves(board);
     generateQueenMoves(board);
     generateBishopMoves(board);
@@ -14,15 +21,15 @@ void MoveGeneration::generateMoves(const Board &board) {
 }
 
 void MoveGeneration::generatePawnMoves(const Board &board) {
-    int forward = board.move == Color::WHITE ? Direction::UP : Direction::DOWN;
-    int startingRank = board.move == Color::WHITE ? 1 : 6;
-    int promotionRank = board.move == Color::WHITE ? 6 : 1;
+    int forward = board.moveColor == Color::WHITE ? Direction::UP : Direction::DOWN;
+    int startingRank = board.moveColor == Color::WHITE ? 1 : 6;
+    int promotionRank = board.moveColor == Color::WHITE ? 6 : 1;
 
-    for (int i = 0; i < board.pieceCounts[board.move][PieceType::PAWN]; i++) {
-        int square = board.pieces[board.move][PieceType::PAWN][i];
+    for (int i = 0; i < board.pieceCounts[board.moveColor][PieceType::PAWN]; i++) {
+        int square = board.pieces[board.moveColor][PieceType::PAWN][i];
 
         //forward or promote
-        bool forwardClear = board.isEmpty(square + Direction::UP);
+        bool forwardClear = board.isEmpty(square + forward);
         if (forwardClear && Board::indexToRank(square) == promotionRank) {
             addMove(square, square + forward, MoveFlags::BISHOP_PROMOTION);
             addMove(square, square + forward, MoveFlags::KNIGHT_PROMOTION);
@@ -44,30 +51,51 @@ void MoveGeneration::generatePawnMoves(const Board &board) {
         if (Board::inBounds(attackRight)
             && !board.isEmpty(attackRight)
             && board.isEnemy(attackRight)) {
-            addMove(square, attackRight, MoveFlags::CAPTURE);
+
+            if (Board::indexToRank(square) == promotionRank) {
+                addMove(square, attackRight, MoveFlags::BISHOP_PROMOTION | MoveFlags::CAPTURE);
+                addMove(square, attackRight, MoveFlags::KNIGHT_PROMOTION | MoveFlags::CAPTURE);
+                addMove(square, attackRight, MoveFlags::ROOK_PROMOTION | MoveFlags::CAPTURE);
+                addMove(square, attackRight, MoveFlags::QUEEN_PROMOTION | MoveFlags::CAPTURE);
+            } else {
+                addMove(square, attackRight, MoveFlags::CAPTURE);
+            }
+
         }
 
         int attackLeft = square + forward + Direction::LEFT;
         if (Board::inBounds(attackLeft)
             && !board.isEmpty(attackLeft)
             && board.isEnemy(attackLeft)) {
-            addMove(square, attackLeft, MoveFlags::CAPTURE);
+
+            if (Board::indexToRank(square) == promotionRank) {
+                addMove(square, attackLeft, MoveFlags::BISHOP_PROMOTION | MoveFlags::CAPTURE);
+                addMove(square, attackLeft, MoveFlags::KNIGHT_PROMOTION | MoveFlags::CAPTURE);
+                addMove(square, attackLeft, MoveFlags::ROOK_PROMOTION | MoveFlags::CAPTURE);
+                addMove(square, attackLeft, MoveFlags::QUEEN_PROMOTION | MoveFlags::CAPTURE);
+            } else {
+                addMove(square, attackLeft, MoveFlags::CAPTURE);
+            }
         }
 
         //en passant
-        if (square + Direction::LEFT == board.enPassantSquare
-            && board.isEnemy(square + Direction::LEFT)) {
-            addMove(square, square + Direction::LEFT, MoveFlags::CAPTURE | MoveFlags::EN_PASSANT_CAPTURE);
+        if (board.enPassantSquare != -1
+            && square + Direction::LEFT == board.enPassantSquare
+            && board.isEnemy(square + Direction::LEFT)
+            && board.isEmpty(square + Direction::LEFT + forward)) {
+            addMove(square, square + Direction::LEFT + forward, MoveFlags::CAPTURE | MoveFlags::EN_PASSANT_CAPTURE);
         }
-        if (square + Direction::RIGHT == board.enPassantSquare
-            && board.isEnemy(square + Direction::RIGHT)) {
-            addMove(square, square + Direction::RIGHT, MoveFlags::CAPTURE | MoveFlags::EN_PASSANT_CAPTURE);
+        if (board.enPassantSquare != -1
+            && square + Direction::RIGHT == board.enPassantSquare
+            && board.isEnemy(square + Direction::RIGHT)
+            && board.isEmpty(square + Direction::RIGHT + forward)) {
+            addMove(square, square + Direction::RIGHT + forward, MoveFlags::CAPTURE | MoveFlags::EN_PASSANT_CAPTURE);
         }
 
     }
 }
 void MoveGeneration::generateKingMoves(const Board &board) {
-    int square = board.pieces[board.move][PieceType::KING][0];
+    int square = board.pieces[board.moveColor][PieceType::KING][0];
 
     //move king (Kings can't capture)
     for (int direction : allDirections) {
@@ -78,12 +106,12 @@ void MoveGeneration::generateKingMoves(const Board &board) {
     }
 
     //castling king side
-    if(board.castlingRights[board.move] & CastlingRight::KING_SIDE){
+    if (board.castlingRights[board.moveColor] & CastlingRight::KING_SIDE) {
         generateCastle(board, square, Direction::RIGHT);
     }
 
     //castling queen side
-    if(board.castlingRights[board.move] & CastlingRight::QUEEN_SIDE){
+    if (board.castlingRights[board.moveColor] & CastlingRight::QUEEN_SIDE) {
         generateCastle(board, square, Direction::LEFT);
     }
 }
@@ -99,15 +127,18 @@ void MoveGeneration::generateCastle(const Board &board, int kingSquare, int cast
     canCastle &= board.isEmpty(kingSquare + castleDirection * 2);
     canCastle &= !board.isAttacked(kingSquare + castleDirection * 2);
 
-    if(canCastle){
+    if(castleDirection == Direction::LEFT)
+        canCastle &= board.isEmpty(kingSquare + castleDirection * 3);
+
+    if (canCastle) {
         int flag = castleDirection == Direction::RIGHT ? MoveFlags::CASTLE_RIGHT : MoveFlags::CASTLE_LEFT;
         addMove(kingSquare, kingSquare + castleDirection * 2, flag);
     }
 }
 
 void MoveGeneration::generateKnightMoves(const Board &board) {
-    for (int i = 0; i < board.pieceCounts[board.move][PieceType::KNIGHT]; i++) {
-        int square = board.pieces[board.move][PieceType::KNIGHT][i];
+    for (int i = 0; i < board.pieceCounts[board.moveColor][PieceType::KNIGHT]; i++) {
+        int square = board.pieces[board.moveColor][PieceType::KNIGHT][i];
 
         for (int direction : knightDirections) {
             int newSquare = square + direction;
@@ -123,8 +154,8 @@ void MoveGeneration::generateKnightMoves(const Board &board) {
 }
 
 void MoveGeneration::generateBishopMoves(const Board &board) {
-    for (int i = 0; i < board.pieceCounts[board.move][PieceType::BISHOP]; i++) {
-        int square = board.pieces[board.move][PieceType::BISHOP][i];
+    for (int i = 0; i < board.pieceCounts[board.moveColor][PieceType::BISHOP]; i++) {
+        int square = board.pieces[board.moveColor][PieceType::BISHOP][i];
 
         for (int direction : diagonalDirections) {
             generateSlidingMoves(board, square, direction);
@@ -133,8 +164,8 @@ void MoveGeneration::generateBishopMoves(const Board &board) {
 }
 
 void MoveGeneration::generateRookMoves(const Board &board) {
-    for (int i = 0; i < board.pieceCounts[board.move][PieceType::ROOK]; i++) {
-        int square = board.pieces[board.move][PieceType::ROOK][i];
+    for (int i = 0; i < board.pieceCounts[board.moveColor][PieceType::ROOK]; i++) {
+        int square = board.pieces[board.moveColor][PieceType::ROOK][i];
 
         for (int direction : straightDirections) {
             generateSlidingMoves(board, square, direction);
@@ -143,8 +174,8 @@ void MoveGeneration::generateRookMoves(const Board &board) {
 }
 
 void MoveGeneration::generateQueenMoves(const Board &board) {
-    for (int i = 0; i < board.pieceCounts[board.move][PieceType::QUEEN]; i++) {
-        int square = board.pieces[board.move][PieceType::QUEEN][i];
+    for (int i = 0; i < board.pieceCounts[board.moveColor][PieceType::QUEEN]; i++) {
+        int square = board.pieces[board.moveColor][PieceType::QUEEN][i];
 
         for (int direction : allDirections) {
             generateSlidingMoves(board, square, direction);

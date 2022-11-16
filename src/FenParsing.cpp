@@ -82,6 +82,7 @@ std::tuple<BoardArray, PieceArray, PieceCountArray> Board::extractPiecesFromFen(
         int pieceType = piece.piece & ~PieceType::BLACK_FLAG;
         int pieceListIndex = pieceCounts[color][pieceType];
 
+        piece.pieceListLocation = pieceListIndex;
         board[boardLocation] = piece;
         pieces[color][pieceType][pieceListIndex] = boardLocation;
         pieceCounts[color][pieceType]++;
@@ -90,4 +91,5 @@ std::tuple<BoardArray, PieceArray, PieceCountArray> Board::extractPiecesFromFen(
     }
     return std::make_tuple(board, pieces, pieceCounts);
 }
+
 

@@ -3,6 +3,8 @@
 
 #include <array>
 
+const int MAX_DEPTH = 128;
+
 enum Color : int {
     WHITE = 0,
     BLACK = 1
@@ -32,10 +34,10 @@ namespace MoveFlags {
     //has capture been made
     const int CAPTURE = 1;
 
-    //has pawn made a double move (for en passant)
+    //has pawn made a double moveColor (for en passant)
     const int DOUBLE_PAWN = 1 << 1;
 
-    //if captured en passant, for proper ordering also needs capture flag
+    //if captured en passant, also need to add CAPTURE flag
     const int EN_PASSANT_CAPTURE = 1 << 2;
 
     //promotion types
@@ -43,10 +45,12 @@ namespace MoveFlags {
     const int BISHOP_PROMOTION = 1 << 4;
     const int ROOK_PROMOTION = 1 << 5;
     const int QUEEN_PROMOTION = 1 << 6;
+    const int PROMOTION_SUBMASK = KNIGHT_PROMOTION | BISHOP_PROMOTION | ROOK_PROMOTION | QUEEN_PROMOTION;
 
     //castling
     const int CASTLE_RIGHT = 1 << 7;
-    const int CASTLE_LEFT= 1 << 8;
+    const int CASTLE_LEFT = 1 << 8;
+    const int CASTLE_SUBMASK = CASTLE_RIGHT | CASTLE_LEFT;
 }
 
 namespace Direction {
@@ -91,4 +95,8 @@ const std::array<int, 8> allDirections = {
     Direction::DOWN + Direction::RIGHT,
     Direction::DOWN + Direction::LEFT,
 };
+
+//might want to play around with it
+const std::array<int, 8> explosionDirections = allDirections;
+
 #endif //BOOMCHESS_ENUMS_H

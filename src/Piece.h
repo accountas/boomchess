@@ -13,12 +13,15 @@ class Piece {
     int piece;
     int pieceListLocation;
 
-    Piece(uint8_t piece, uint8_t pieceListLocation);
+    Piece(int piece, int pieceListLocation);
     Piece() : piece(PieceType::EMPTY), pieceListLocation(127) {};
 
     int type() const {
-        return piece & ~BLACK_FLAG;
+        return piece & (~BLACK_FLAG);
     }
+    int color() const {
+        return bool(piece & BLACK_FLAG);
+    };
     char toChar() const;
 };
 

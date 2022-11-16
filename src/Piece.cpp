@@ -26,7 +26,7 @@ char Piece::toChar() const {
     return pieceString[piece][0];
 }
 
-Piece::Piece(uint8_t piece,
-             uint8_t pieceListLocation)
+Piece::Piece(int piece,
+             int pieceListLocation)
     : piece(piece),
       pieceListLocation(pieceListLocation) {}
