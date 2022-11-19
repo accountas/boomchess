@@ -6,14 +6,14 @@
 #define BOOMCHESS_DRIVER_H
 
 #include "Board.h"
-#include "MoveGeneration.h"
+#include "MoveGenerator.h"
 
 class Driver {
 public:
     void start();
 private:
     void perft(int depth, std::string fen, bool divide = false);
-    int perft(int maxDepth, int depth, bool divide, Board &board, MoveGeneration &generator);
+    int perft(int maxDepth, int depth, bool divide, Board &board, MoveGenerator &generator);
 };
 
 

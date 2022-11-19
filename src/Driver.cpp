@@ -6,23 +6,34 @@
 #include <chrono>
 #include "Driver.h"
 #include "Board.h"
-#include "MoveGeneration.h"
-using namespace std;
+#include "MoveGenerator.h"
+#include "Search.h"
+#include "Timer.h"
+
 
 void Driver::start() {
+    using namespace std;
 
-//    auto defaultFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    std::string fen;
+    Timer timer;
 
+    while(true){
+        getline(std::cin, fen);
+        if(fen == "q") break;
+        Search search;
+        search.setBoard(Board::fromFen(fen));
 
+        timer.start();
+        auto result = search.search(8);
+        timer.end();
 
-    perft(5, "rn2kb1r/1pp1p2p/p2q1pp1/3P4/2P3b1/4PN2/PP3PPP/R2QKB1R b KQkq - 0 1", true);
-
-    system("pause");
+        cout << "nodes checked: " << search.numChecked << "; nps = " << fixed << search.numChecked / timer.getSeconds() << endl;
+        cout << result.evaluation << " " << Board::moveToString(result.bestMove) << endl;
+    }
 }
-
-void Driver::perft(int depth, string fen, bool divide) {
+void Driver::perft(int depth, std::string fen, bool divide) {
     auto board = Board::fromFen(fen);
-    auto generator = MoveGeneration();
+    auto generator = MoveGenerator();
 
     //run and time perft
     auto start = std::chrono::high_resolution_clock::now();
@@ -32,12 +43,12 @@ void Driver::perft(int depth, string fen, bool divide) {
 
     std::cout << "===== Perft results for " << fen << " =====" << std::endl;
     std::cout << "perft(" << depth << ") finished in: " << duration / 1000.0 << " s. ";
-    std::cout << fixed << "speed: " << ((float)total / duration) * 1000 << " nodes/s" << endl;
-    std::cout << "total number of nodes: " << total << endl;
+    std::cout << std::fixed << "speed: " << ((float)total / duration) * 1000 << " nodes/s" << std::endl;
+    std::cout << "total number of nodes: " << total << std::endl;
 }
 
 
-int Driver::perft(int maxDepth, int depth, bool divide, Board &board, MoveGeneration &generator) {
+int Driver::perft(int maxDepth, int depth, bool divide, Board &board, MoveGenerator &generator) {
     if (depth == maxDepth) {
        return 1;
     }
@@ -52,9 +63,9 @@ int Driver::perft(int maxDepth, int depth, bool divide, Board &board, MoveGenera
         if (board.isLegal()) {
             int childCount = perft(maxDepth, depth + 1, divide, board, generator);
             if(divide && depth == 0){
-                cout << Board::indexToString(generator[i].from);
-                cout << Board::indexToString(generator[i].to);
-                cout << ": " << childCount << endl;
+                std::cout << Board::indexToString(generator[i].from);
+                std::cout << Board::indexToString(generator[i].to);
+                std::cout << ": " << childCount << std::endl;
             }
 //            if(divide && depth == 1){
 //                cout << " " << Board::indexToString(generator[i].from);

@@ -9,7 +9,7 @@
 #include "Piece.h"
 #include "Common.h"
 #include "Move.h"
-#include "assert.h"
+#include "ZobristKey.h"
 
 typedef std::array<Piece, 128> BoardArray;
 typedef std::array<std::array<std::array<int, 10>, 7>, 2> PieceArray;
@@ -26,7 +26,11 @@ class Board {
     int moveColor;
     std::array<int, 2> castlingRights;
     int enPassantSquare;
-    int numHalfMoves; //for 50 moveColor rule
+    int numHalfMoves;
+    bool madeNullMove = false;
+
+    //hash
+    ZobristKey zobristKey {};
 
     Board(const BoardArray &board,
           const PieceArray &pieces,
@@ -36,10 +40,11 @@ class Board {
           int en_passant_square,
           int num_half_moves);
 
-    void addPiece(int idx, Piece piece);
-    void removePiece(int idx, bool capture = false);
     void makeMove(const Move &move);
     void unmakeMove();
+
+    void addPiece(int idx, Piece piece);
+    void removePiece(int idx, bool capture = false);
     void movePiece(int from, int to);
 
     bool isAttacked(int idx) const;
@@ -49,6 +54,12 @@ class Board {
 
     std::string toString() const;
 
+    bool isKingCaptured() const {
+        return pieceCounts[moveColor][KING] == 0;
+    }
+    bool isInCheck() const {
+        return !isKingCaptured() && isAttacked(pieces[moveColor][KING][0]);
+    }
     bool isEnemy(int idx) const {
         return !isEmpty(idx) && board[idx].color() != moveColor;
     }
@@ -72,6 +83,14 @@ class Board {
     }
     static int stringToIndex(const std::string &square){
         return positionToIndex(square[0] - 'a', square[1] - '0' - 1);
+    }
+    static Move stringToMove(const std::string &move, int flags){
+        int from = stringToIndex(move.substr(0, 2));
+        int to = stringToIndex(move.substr(2));
+        return {from, to, flags};
+    }
+    static std::string moveToString(const Move &move){
+        return indexToString(move.from) + indexToString(move.to);
     }
     static std::string indexToString(int idx){
         char file = 'a' + indexToFile(idx);
@@ -99,10 +118,15 @@ class Board {
         std::array<int, 2> previousCastlingRights{};
     };
 
+    //fen parsing
+    static std::tuple<BoardArray, PieceArray, PieceCountArray> extractPiecesFromFen(const std::string &fen);
+
+    //incremental update
     std::stack<MoveInfo> moveHistory;
     std::stack<std::pair<int, Piece>> captureHistory;
+
+    //move gen util stuff
     int castRay(int startingSquare, int direction) const;
-    static std::tuple<BoardArray, PieceArray, PieceCountArray> extractPiecesFromFen(const std::string &fen);
     bool isAttacked(int idx, bool (Board::*isEnemyFn)(int) const, bool inverseColor = false) const;
 };
 

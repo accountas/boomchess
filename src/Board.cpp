@@ -1,7 +1,6 @@
 #include <tuple>
 #include <functional>
 #include <iostream>
-#include <cassert>
 #include "Board.h"
 
 Board::Board(const BoardArray &board,
@@ -17,7 +16,22 @@ Board::Board(const BoardArray &board,
       moveColor(move),
       castlingRights(castling_rights),
       enPassantSquare(en_passant_square),
-      numHalfMoves(num_half_moves) {}
+      numHalfMoves(num_half_moves) {
+
+    //set initial hash
+    for (int color : std::array<int, 2>{WHITE, BLACK}) {
+        for (int piece : PieceTypes) {
+            for (int i = 0; i < pieceCounts[color][piece]; i++){
+                int idx = pieces[color][piece][i];
+                zobristKey.flipPiece(idx, board[idx]);
+            }
+        }
+    }
+    zobristKey.setMoveColor(move);
+    zobristKey.flipCastlingRights(WHITE, castling_rights[WHITE]);
+    zobristKey.flipCastlingRights(BLACK, castling_rights[BLACK]);
+    zobristKey.flipEnPassantFile(Board::indexToFile(en_passant_square));
+}
 
 void Board::makeMove(const Move &move) {
     auto moveInfo = MoveInfo(move,
@@ -28,13 +42,19 @@ void Board::makeMove(const Move &move) {
 
     //update castling rights
     if (board[move.from].type() == KING) {
+        zobristKey.flipCastlingRights(moveColor, castlingRights[moveColor]);
         castlingRights[moveColor] = NO_CASTLE;
+        zobristKey.flipCastlingRights(moveColor, castlingRights[moveColor]);
     }
     if (indexToFile(move.from) == 0 && board[move.from].type() == ROOK) {
+        zobristKey.flipCastlingRights(moveColor, castlingRights[moveColor]);
         castlingRights[moveColor] &= ~CastlingRight::QUEEN_SIDE;
+        zobristKey.flipCastlingRights(moveColor, castlingRights[moveColor]);
     }
     if (indexToFile(move.from) == 7 && board[move.from].type() == ROOK) {
+        zobristKey.flipCastlingRights(moveColor, castlingRights[moveColor]);
         castlingRights[moveColor] &= ~CastlingRight::KING_SIDE;
+        zobristKey.flipCastlingRights(moveColor, castlingRights[moveColor]);
     }
 
     //for 50 move rule
@@ -46,8 +66,11 @@ void Board::makeMove(const Move &move) {
 
     //track potential en passant
     if (move.flags & MoveFlags::DOUBLE_PAWN) {
+        zobristKey.flipEnPassantFile(indexToFile(enPassantSquare));
         enPassantSquare = move.to;
-    } else {
+        zobristKey.flipEnPassantFile(indexToFile(enPassantSquare));
+    } else if(enPassantSquare != -1){
+        zobristKey.flipEnPassantFile(indexToFile(enPassantSquare));
         enPassantSquare = -1;
     }
 
@@ -121,6 +144,7 @@ void Board::makeMove(const Move &move) {
 
     //change player color
     moveColor = !moveColor;
+    zobristKey.flipMoveColor();
 }
 
 void Board::unmakeMove() {
@@ -129,9 +153,17 @@ void Board::unmakeMove() {
 
     //restore game state
     moveColor = !moveColor;
+    zobristKey.flipMoveColor();
+
+    zobristKey.flipCastlingRights(moveColor, castlingRights[moveColor]);
     castlingRights = lastMoveUndo.previousCastlingRights;
+    zobristKey.flipCastlingRights(moveColor, castlingRights[moveColor]);
+
     numHalfMoves = lastMoveUndo.prevNumHalfMoves;
+
+    if(enPassantSquare != -1) zobristKey.flipEnPassantFile(indexToFile(enPassantSquare));
     enPassantSquare = lastMoveUndo.prevEnPassant;
+    if(enPassantSquare != -1) zobristKey.flipEnPassantFile(indexToFile(enPassantSquare));
 
     auto move = lastMoveUndo.move;
 
@@ -177,9 +209,13 @@ void Board::unmakeMove() {
 
 void Board::movePiece(int from, int to) {
     auto piece = board[from];
+    zobristKey.flipPiece(from, piece);
+
     board[from].piece = PieceType::EMPTY;
     board[to] = piece;
     pieces[piece.color()][piece.type()][piece.pieceListLocation] = to;
+
+    zobristKey.flipPiece(to, board[to]);
 }
 
 void Board::addPiece(int idx, Piece piece) {
@@ -190,17 +226,23 @@ void Board::addPiece(int idx, Piece piece) {
     pieceCounts[piece.color()][piece.type()]++;
 
     board[idx] = piece;
+    zobristKey.flipPiece(idx, piece);
 }
 
 void Board::removePiece(int idx, bool capture) {
     Piece piece = board[idx];
+    zobristKey.flipPiece(idx, piece);
 
     //update castling rights if rook
-    if(capture && piece.type() == ROOK){
-        if(idx == positionToIndex(0, 0)) castlingRights[WHITE] &= ~CastlingRight::QUEEN_SIDE;
-        if(idx == positionToIndex(0, 7)) castlingRights[BLACK] &= ~CastlingRight::QUEEN_SIDE;
-        if(idx == positionToIndex(7, 0)) castlingRights[WHITE] &= ~CastlingRight::KING_SIDE;
-        if(idx == positionToIndex(7, 7)) castlingRights[BLACK] &= ~CastlingRight::KING_SIDE;
+    if (capture && piece.type() == ROOK) {
+        zobristKey.flipCastlingRights(WHITE, castlingRights[WHITE]);
+        zobristKey.flipCastlingRights(BLACK, castlingRights[BLACK]);
+        if (idx == positionToIndex(0, 0)) castlingRights[WHITE] &= ~CastlingRight::QUEEN_SIDE;
+        if (idx == positionToIndex(0, 7)) castlingRights[BLACK] &= ~CastlingRight::QUEEN_SIDE;
+        if (idx == positionToIndex(7, 0)) castlingRights[WHITE] &= ~CastlingRight::KING_SIDE;
+        if (idx == positionToIndex(7, 7)) castlingRights[BLACK] &= ~CastlingRight::KING_SIDE;
+        zobristKey.flipCastlingRights(WHITE, castlingRights[WHITE]);
+        zobristKey.flipCastlingRights(BLACK, castlingRights[BLACK]);
     }
 
     //remove from piece list by replacing with last element
@@ -221,9 +263,11 @@ bool Board::isLegal() const {
     bool inCheck = isAttacked(pieces[!moveColor][KING][0], &Board::isFriendly, true);
     return tookEnemyKing || (!tookOurKing && !inCheck);
 }
+
 bool Board::isAttacked(int idx) const {
     return isAttacked(idx, &Board::isEnemy);
 }
+
 bool Board::isAttacked(int idx, bool (Board::*isEnemyFn)(int) const, bool inverseColor) const {
     //queen and rook attacks
     for (int direction : straightDirections) {
