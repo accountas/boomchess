@@ -103,6 +103,22 @@ class Board {
     Piece operator[](int index) const {
         return board[index];
     }
+    std::string getMovesMade(){
+        std::string result;
+        std::stack<MoveInfo> tmp;
+        while(!moveHistory.empty()){
+            auto top = moveHistory.top();
+            moveHistory.pop();
+            tmp.push(top);
+            result += moveToString(top.move);
+        }
+        while(!tmp.empty()){
+            auto top = tmp.top();
+            tmp.pop();
+            moveHistory.push(top);
+        }
+        return result;
+    }
 
  private:
     struct MoveInfo {
@@ -128,6 +144,9 @@ class Board {
     //move gen util stuff
     int castRay(int startingSquare, int direction) const;
     bool isAttacked(int idx, bool (Board::*isEnemyFn)(int) const, bool inverseColor = false) const;
+    void setEnPassantSquare(int square);
+    void setCastlingRights(int color, int rights);
+    void flipMoveColor();
 };
 
 

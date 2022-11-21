@@ -8,11 +8,11 @@
 void ZobristKey::generateNumbers() {
     std::random_device r;
     std::default_random_engine e(r());
-    std::uniform_int_distribution<int64_t> uniform_dist(0, UINT64_MAX);
+    std::uniform_int_distribution<uint64_t> uniform_dist(0, UINT64_MAX);
 
     for (int i = 0; i < pieceNumbers.size(); i++) {
         for (int j = 0; j < pieceNumbers[i].size(); j++) {
-            for (int k = 0; k < pieceNumbers[j].size(); k++) {
+            for (int k = 0; k < pieceNumbers[i][j].size(); k++) {
                 pieceNumbers[i][j][k] = uniform_dist(e);
             }
         }
@@ -22,7 +22,7 @@ void ZobristKey::generateNumbers() {
         i = uniform_dist(e);
     }
 
-    for (auto &i : moveColorNumbers) {
+    for (auto &i : enPassantFileNumbers) {
         i = uniform_dist(e);
     }
 

@@ -197,37 +197,73 @@ void MoveGenerator::sortTill(int idx, const Board &board) {
 
     for (int i = nSorted[curDepth]; i <= idx; i++) {
         //score fields:
-        //TODO: add history and killer heuristics
         //0 = capture score
-        //1 = id
-        std::array<int, 2> bestMove = {0, i};
+        //1 = is killer (0, 1)
+        //2 = id
+        std::array<int, 3> bestMoveScore = {0, 0, i};
+        std::array<int, 3> curMoveScore{};
 
         for (int j = i; j < n[curDepth]; j++) {
             auto move = (*this)[j];
-            std::array<int, 2> curMove = {0, j};
+            curMoveScore = {0, 0, j};
+
+            //assign MVV-LVA score, we want score to be > 0 for equal captures and < 0 for loosing captures
             if (move.flags & MoveFlags::CAPTURE) {
-                curMove[0] = captureScore[curDepth][j];
+                curMoveScore[0] = captureScore[curDepth][j];
+                if(curMoveScore[0] > 0) curMoveScore[0]++;
             }
-            bestMove = max(bestMove, curMove);
+
+            //assign killer heuristic score
+            if(!(move.flags & MoveFlags::CAPTURE)){
+                for(const Move &killer : killers[curDepth]){
+                    if(killer.same(move)){
+                        curMoveScore[1] = 1;
+                        break;
+                    }
+                }
+            }
+
+            bestMoveScore = max(bestMoveScore, curMoveScore);
         }
 
-        int bestIdx = bestMove.back();
+        int bestIdx = bestMoveScore.back();
         std::swap(moves[curDepth][i], moves[curDepth][bestIdx]);
         std::swap(captureScore[curDepth][i], captureScore[curDepth][bestIdx]);
     }
 
     nSorted[curDepth] = idx + 1;
 }
+
 void MoveGenerator::calculateLatestCaptureScore(const Board &board) {
-    auto move =  moves[curDepth][size() - 1];
+    auto move = moves[curDepth][size() - 1];
     int score = -PieceWeights[board[move.from].type()];
-    for(int direction : explosionDirections){
+    for (int direction : explosionDirections) {
         int captureIdx = move.to + direction;
-        if(Board::inBounds(captureIdx) && !board.isEmpty(captureIdx)){
+        if (Board::inBounds(captureIdx) && !board.isEmpty(captureIdx)) {
             bool friendly = board[captureIdx].color() == board[move.from].color();
             score += PieceWeights[board[captureIdx].type()] * (friendly ? -1 : 1);
         }
     }
     captureScore[curDepth][size() - 1] = score;
+}
+
+void MoveGenerator::sortTT(const Move &move) {
+    for (int i = 0; i < n[curDepth]; i++) {
+        if (moves[curDepth][i].from == move.from && moves[curDepth][i].to == move.to) {
+            std::swap(moves[curDepth][0], moves[curDepth][i]);
+            nSorted[curDepth] = 1;
+            break;
+        }
+    }
+}
+
+void MoveGenerator::markKiller(int idx) {
+    auto move = moves[curDepth][idx];
+    if (!killers[curDepth][0].same(move)) {
+        for (int i = KILLER_MOVES_N - 1; i > 0; i--) {
+            killers[curDepth][i] = killers[curDepth][i - 1];
+        }
+        killers[curDepth][0] = move;
+    }
 }
 

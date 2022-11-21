@@ -13,32 +13,34 @@
 class MoveGenerator {
 
  public:
-    std::array<std::array<Move, 300>, MAX_DEPTH> moves {};
-    std::array<std::array<int, 300>, MAX_DEPTH> captureScore {}; //mvvlva
-    std::array<int, MAX_DEPTH> n {};
-    std::array<int, MAX_DEPTH> nSorted {};
+    std::array<std::array<Move, 300>, MAX_DEPTH> moves{};
+    std::array<std::array<int, 300>, MAX_DEPTH> captureScore{}; //mvvlva
+    std::array<int, MAX_DEPTH> n{};
+    std::array<int, MAX_DEPTH> nSorted{};
 
     void generateMoves(const Board &board);
 
-    int size(){
+    int size() {
         return n[curDepth];
     }
-    void increaseDepth(){
+    void sortTT(const Move &move);
+    void increaseDepth() {
         curDepth++;
     }
-    void decreaseDepth(){
+    void decreaseDepth() {
         curDepth--;
     }
-    void setDepth(int depth){
+    void setDepth(int depth) {
         curDepth = depth;
     }
     Move &getSorted(int idx, const Board &board) {
         sortTill(idx, board);
         return (*this)[idx];
     }
-    Move &operator[](int idx){
+    Move &operator[](int idx) {
         return moves[curDepth][idx];
     }
+    void markKiller(int idx);
 
  private:
     int curDepth = 0;
@@ -55,6 +57,8 @@ class MoveGenerator {
     void addMove(int from, int to, int flags = 0) {
         moves[curDepth][n[curDepth]++] = Move(from, to, flags);
     }
+
+    std::array<std::array<Move, 2>, MAX_DEPTH> killers;
 
 };
 
