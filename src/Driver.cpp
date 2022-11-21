@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <chrono>
+#include <iomanip>
 #include "Driver.h"
 #include "Board.h"
 #include "MoveGenerator.h"
@@ -14,22 +15,32 @@
 void Driver::start() {
     using namespace std;
 
-    std::string fen;
-    Timer timer;
-
-    while(true){
-        getline(std::cin, fen);
-        if(fen == "q") break;
-        Search search;
-        search.setBoard(Board::fromFen(fen));
-
-        timer.start();
-        auto result = search.search(8);
-        timer.end();
-
-        cout << "nodes checked: " << search.numChecked << "; nps = " << fixed << search.numChecked / timer.getSeconds() << endl;
-        cout << result.evaluation << " " << Board::moveToString(result.bestMove) << endl;
-    }
+    auto board = Board::fromFen("rnbqkb1r/pppppppp/5n2/6N1/8/8/PPPPPPPP/RNBQKB1R b KQkq - 3 2");
+    cout << board.zobristKey.value << endl;
+    board.makeMove(Board::stringToMove("c7c5", 0));
+    cout << board.zobristKey.value << endl;
+    board.unmakeMove();
+    cout << board.zobristKey.value << endl;
+//    std::string fen;
+//    Timer timer;
+//
+//    while(true){
+//        getline(std::cin, fen);
+//        if(fen == "q") break;
+//        Search search;
+//        search.setBoard(Board::fromFen(fen));
+//
+//        timer.start();
+//        auto result = search.search(4);
+//        timer.end();
+//
+//        cout << "time took:" << fixed << setprecision(5) << timer.getSeconds() << endl;
+//        cout << "nodes/s: " << fixed << search.numChecked / timer.getSeconds() << endl;
+//        cout << "nodes checked: " << search.numChecked << endl;
+//        cout << "TT hits: " << search.cacheHits << endl;
+//        cout << "evaluation: " << result.evaluation / 100.0 << endl;
+//        cout << "best move: " << Board::moveToString(result.bestMove) << endl;
+//    }
 }
 void Driver::perft(int depth, std::string fen, bool divide) {
     auto board = Board::fromFen(fen);

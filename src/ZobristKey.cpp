@@ -8,7 +8,7 @@
 void ZobristKey::generateNumbers() {
     std::random_device r;
     std::default_random_engine e(r());
-    std::uniform_int_distribution<int64_t> uniform_dist(0, UINT64_MAX);
+    std::uniform_int_distribution<uint64_t> uniform_dist(0, 1231231231);
 
     for (int i = 0; i < pieceNumbers.size(); i++) {
         for (int j = 0; j < pieceNumbers[i].size(); j++) {

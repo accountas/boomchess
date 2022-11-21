@@ -8,6 +8,7 @@
 #include "Board.h"
 #include "MoveGenerator.h"
 #include "Evaluator.h"
+#include "TranspositionTable.h"
 
 struct SearchResult;
 
@@ -16,6 +17,7 @@ class Search {
     Search() : board(Board::fromFen(DEFAULT_FEN)) {}
 
     int numChecked = 0;
+    int cacheHits = 0;
 
     SearchResult search(int depth);
     void setBoard(const Board &b) {
@@ -26,9 +28,8 @@ class Search {
     Board board;
     MoveGenerator generator;
     Evaluator evaluator;
-    Move finalBestMove;
+    TranspositionTable<SearchEntry, TT_SIZE> tTable {};
     int alphaBeta(int depthLeft, int alpha, int beta);
-
 };
 
 struct SearchResult {

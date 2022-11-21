@@ -21,7 +21,7 @@ Board::Board(const BoardArray &board,
     //set initial hash
     for (int color : std::array<int, 2>{WHITE, BLACK}) {
         for (int piece : PieceTypes) {
-            for (int i = 0; i < pieceCounts[color][piece]; i++){
+            for (int i = 0; i < pieceCounts[color][piece]; i++) {
                 int idx = pieces[color][piece][i];
                 zobristKey.flipPiece(idx, board[idx]);
             }
@@ -66,10 +66,11 @@ void Board::makeMove(const Move &move) {
 
     //track potential en passant
     if (move.flags & MoveFlags::DOUBLE_PAWN) {
-        zobristKey.flipEnPassantFile(indexToFile(enPassantSquare));
+        if(enPassantSquare != -1)
+            zobristKey.flipEnPassantFile(indexToFile(enPassantSquare));
         enPassantSquare = move.to;
         zobristKey.flipEnPassantFile(indexToFile(enPassantSquare));
-    } else if(enPassantSquare != -1){
+    } else if (enPassantSquare != -1) {
         zobristKey.flipEnPassantFile(indexToFile(enPassantSquare));
         enPassantSquare = -1;
     }
@@ -131,11 +132,13 @@ void Board::makeMove(const Move &move) {
         if (move.flags & MoveFlags::CASTLE_RIGHT) {
             movePiece(positionToIndex(7, indexToRank(move.to)), move.to + Direction::LEFT);
         }
+        zobristKey.flipCastlingRights(moveColor, castlingRights[moveColor]);
         castlingRights[moveColor] = NO_CASTLE;
+        zobristKey.flipCastlingRights(moveColor, castlingRights[moveColor]);
     }
 
     //quiet move
-    if ((move.flags & (~MoveFlags::DOUBLE_PAWN)) == 0) {
+    if ((move.flags & (~MoveFlags::DOUBLE_PAWN)) == 0 && !(move.flags & MoveFlags::NULL_MOVE)) {
         movePiece(move.from, move.to);
     }
 
@@ -161,9 +164,9 @@ void Board::unmakeMove() {
 
     numHalfMoves = lastMoveUndo.prevNumHalfMoves;
 
-    if(enPassantSquare != -1) zobristKey.flipEnPassantFile(indexToFile(enPassantSquare));
+    if (enPassantSquare != -1) zobristKey.flipEnPassantFile(indexToFile(enPassantSquare));
     enPassantSquare = lastMoveUndo.prevEnPassant;
-    if(enPassantSquare != -1) zobristKey.flipEnPassantFile(indexToFile(enPassantSquare));
+    if (enPassantSquare != -1) zobristKey.flipEnPassantFile(indexToFile(enPassantSquare));
 
     auto move = lastMoveUndo.move;
 
@@ -201,7 +204,7 @@ void Board::unmakeMove() {
     }
 
     //restore quiet move
-    if ((move.flags & (~MoveFlags::DOUBLE_PAWN)) == 0) {
+    if ((move.flags & (~MoveFlags::DOUBLE_PAWN)) == 0 && !(move.flags & MoveFlags::NULL_MOVE)) {
         movePiece(move.to, move.from);
     }
 
