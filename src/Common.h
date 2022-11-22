@@ -3,10 +3,12 @@
 
 #include <array>
 
+//engine params
 const int MAX_DEPTH = 128;
 const int EVAL_MAX = 1e5;
 const int EVAL_MIN = -EVAL_MAX;
-const int TT_SIZE = 1 << 23; //about 1GB
+const int TT_SIZE = 1 << 25;
+const int KILLER_MOVES_N = 2;
 const std::string DEFAULT_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 /**

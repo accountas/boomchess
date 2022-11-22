@@ -19,7 +19,7 @@ class Search {
     int numChecked = 0;
     int cacheHits = 0;
 
-    SearchResult search(int depth);
+    void search(int depth);
     void setBoard(const Board &b) {
         board = b;
     }
@@ -28,7 +28,9 @@ class Search {
     Board board;
     MoveGenerator generator;
     Evaluator evaluator;
+
     TranspositionTable<SearchEntry, TT_SIZE> tTable {};
+
     int alphaBeta(int depthLeft, int alpha, int beta);
 };
 

@@ -21,6 +21,9 @@ class TranspositionTable {
     T &at(uint64_t key) {
         return entries[key & (N - 1)];
     }
+    T &operator[](uint64_t key) {
+        return entries[key & (N - 1)];
+    }
     void store(uint64_t key, T value) {
         entries[key & (N - 1)] = value;
     }

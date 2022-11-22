@@ -7,6 +7,7 @@
 
 #include <array>
 #include <cstdint>
+#include <cinttypes>
 #include "Common.h"
 #include "Piece.h"
 
@@ -30,10 +31,10 @@ class ZobristKey {
         value ^= moveColorNumbers[1];
     }
     void flipEnPassantFile(int fileFrom) {
-        value ^= enPassantFileNumbers[fileFrom];
+//        value ^= enPassantFileNumbers[fileFrom];
     }
     void flipCastlingRights(int color, int rights) {
-        value ^= castlingRightNumbers[color][rights];
+//        value ^= castlingRightNumbers[color][rights];
     }
 
  private:
