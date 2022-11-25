@@ -3,6 +3,7 @@
 WIP Atomic chess engine
 
 Quickly reaches depth 8, able to reach depth 10 in under few minutes
+Around 1.1M Nodes per second on i7-8750H. (Compiled with -O3)
 
 # Features
 Board:
