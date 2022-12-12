@@ -31,7 +31,7 @@ class Search {
 
     TranspositionTable<SearchEntry, TT_SIZE> tTable {};
 
-    int alphaBeta(int depthLeft, int alpha, int beta);
+    int alphaBeta(int depthLeft, int alpha, int beta, bool isPV);
 };
 
 struct SearchResult {

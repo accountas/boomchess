@@ -26,7 +26,7 @@ void Search::search(int depth) {
             auto move = generator.getSorted(i, board);
             board.makeMove(move);
             if (board.isLegal()) {
-                int eval = -alphaBeta(currentDepth, -1e9, 1e9);
+                int eval = -alphaBeta(currentDepth, -1e9, 1e9, false);
                 if (eval > bestEval) {
                     bestEval = eval;
                     bestMove = move;
@@ -44,7 +44,7 @@ void Search::search(int depth) {
     }
 }
 
-int Search::alphaBeta(int depthLeft, int alpha, int beta) {
+int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
     int alphaStart = alpha;
     numChecked++;
 
@@ -78,15 +78,21 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
     }
 
     //null move heuristic
-    if (!board.isInCheck() && !board.isKingCaptured() && !board.madeNullMove) {
+    if (!board.isInCheck()
+        && !board.isKingCaptured()
+        && !board.madeNullMove
+        && depthLeft > NULL_MOVE_R
+        && !isPV) {
         board.makeMove(Move(1, 1, MoveFlags::NULL_MOVE));
         board.madeNullMove = true;
-        int nullEval = -alphaBeta(depthLeft - 2, -beta, -beta + 1);
+        int nullEval = -alphaBeta(depthLeft - NULL_MOVE_R - 1, -beta, -beta + 1, false);
         board.unmakeMove();
         board.madeNullMove = false;
         if (nullEval >= beta) {
             return nullEval;
         }
+    } else if (board.madeNullMove) {
+        board.madeNullMove = false;
     }
 
     generator.increaseDepth();
@@ -110,7 +116,15 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
         }
 
         movesChecked++;
-        int eval = -alphaBeta(depthLeft - 1, -beta, -alpha);
+        int eval;
+        if (i == 0) {
+            eval = -alphaBeta(depthLeft - 1, -beta, -alpha, true);
+        } else {
+            eval = -alphaBeta(depthLeft - 1, -alpha - 1, -alpha, false);
+            if (alpha < eval && eval < beta) {
+                eval = -alphaBeta(depthLeft - 1, -beta, -alpha, false);
+            }
+        }
         board.unmakeMove();
 
         if (eval > value) {
@@ -133,7 +147,7 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
     }
 
     //save move to TT
-    if (tTable.at(hash).depth <= depthLeft && !board.madeNullMove) {
+    if (tTable.at(hash).depth <= depthLeft) {
         SearchEntry ttEntry;
         ttEntry.value = value;
         ttEntry.bestMove = generator[bestMove];

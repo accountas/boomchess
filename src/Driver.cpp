@@ -27,6 +27,9 @@ void Driver::start() {
         timer.start();
         search.search(10);
         timer.end();
+
+//        perft(5, fen, false);
+//        perftTT(5, fen, false);
     }
 }
 void Driver::perft(int depth, const std::string &fen, bool divide = false) {
