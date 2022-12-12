@@ -4,6 +4,7 @@
 #include <array>
 
 //engine params
+const bool USE_METRICS = true;
 const int MAX_DEPTH = 128;
 const int EVAL_MAX = 1e5;
 const int EVAL_MIN = -EVAL_MAX;
@@ -11,6 +12,14 @@ const int TT_SIZE = 1 << 25;
 const int KILLER_MOVES_N = 2;
 const int NULL_MOVE_R = 2;
 const std::string DEFAULT_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+//disable by setting value to negative number
+enum MetricTypes : int {
+    NODES_SEARCHED,
+    CACHE_HITS,
+    PV_HITS,
+    PV_MISSES
+};
 
 /**
  * Common enums

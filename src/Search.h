@@ -16,9 +16,6 @@ class Search {
  public:
     Search() : board(Board::fromFen(DEFAULT_FEN)) {}
 
-    int numChecked = 0;
-    int cacheHits = 0;
-
     void search(int depth);
     void setBoard(const Board &b) {
         board = b;

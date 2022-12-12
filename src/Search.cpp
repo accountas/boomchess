@@ -3,7 +3,6 @@
 //
 
 #include <iostream>
-#include <cassert>
 #include <iomanip>
 #include "Search.h"
 #include "Metrics.h"
@@ -16,8 +15,6 @@ void Search::search(int depth) {
     int bestEval = EVAL_MIN;
     for (int currentDepth = 0; currentDepth < depth; currentDepth++) {
         timer.start();
-        numChecked = 0;
-        cacheHits = 0;
         generator.generateMoves(board);
         if (currentDepth > 0) {
             generator.sortTT(bestMove);
@@ -40,19 +37,21 @@ void Search::search(int depth) {
         std::cout << "Best Move: " << Board::moveToString(bestMove) << " | ";
         std::cout << std::setprecision(4);
         std::cout << "Duration: " << std::setw(8) << std::fixed << timer.getSeconds() << " | ";
-        std::cout << "NPS: " << std::setw(8) << std::fixed << numChecked / timer.getSeconds() << "\n";
+        std::cout << "NPS: " << std::setw(8) << std::fixed << Metric<NODES_SEARCHED>::get() / timer.getSeconds() << " | ";
+        std::cout << "PV hits: " << std::setw(4) << std::fixed << (double)Metric<PV_HITS>::get() << "| ";
+        std::cout << "PV misses: " << Metric<PV_MISSES>::get() << "\n";
     }
 }
 
 int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
     int alphaStart = alpha;
-    numChecked++;
+    Metric<NODES_SEARCHED>::inc();
 
     //lookup transposition table
     auto hash = board.zobristKey.value;
     Move ttMove(0, 0, MoveFlags::NULL_MOVE);
     if (tTable.at(hash).zobristKey == hash) {
-        cacheHits++;
+        Metric<CACHE_HITS>::inc();
         auto entry = tTable.at(hash);
 
         if (entry.depth >= depthLeft) {
@@ -121,8 +120,10 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
             eval = -alphaBeta(depthLeft - 1, -beta, -alpha, true);
         } else {
             eval = -alphaBeta(depthLeft - 1, -alpha - 1, -alpha, false);
+            Metric<PV_HITS>::inc();
             if (alpha < eval && eval < beta) {
                 eval = -alphaBeta(depthLeft - 1, -beta, -alpha, false);
+                Metric<PV_MISSES>::inc();
             }
         }
         board.unmakeMove();

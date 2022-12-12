@@ -8,19 +8,33 @@
 #include <unordered_map>
 #include <string>
 
-template<typename T = int>
-class Metrics {
+template<int ID, typename T = int>
+class Metric {
  public:
-    static void inc(std::string name){
-        metrics[name]++;
+    static void inc(T n = 1) {
+        if(USE_METRICS && ID >= 0){
+            value += n;
+        }
     }
-    static void dec(std::string name){
-        metrics[name]++;
+    static void dec(T n = 1) {
+        if(USE_METRICS && ID >= 0){
+            value -= n;
+        }
     }
-    static T get(std::string name){
-        return metrics[name];
+    static void set(T n = 1) {
+        if(USE_METRICS && ID >= 0){
+            value = n;
+        }
+    }
+    static T get() {
+        return value;
     }
  private:
-    static std::unordered_map<std::string, T> metrics;
+    static T value;
 };
+
+template<int ID, typename T>
+T Metric<ID, T>::value = 0;
+
+
 #endif //BOOMCHESS_SRC_METRICS_H_
