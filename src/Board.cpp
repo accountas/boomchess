@@ -340,6 +340,7 @@ std::string Board::toString() const {
     return result;
 }
 
+
 Board::MoveInfo::MoveInfo(const Move &move,
                           int num_captured,
                           int prev_en_passant,

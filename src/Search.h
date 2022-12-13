@@ -16,25 +16,25 @@ class Search {
  public:
     Search() : board(Board::fromFen(DEFAULT_FEN)) {}
 
-    void search(int depth);
     void setBoard(const Board &b) {
         board = b;
     }
+    void startSearch(const SearchParams &params);
+
+    void killSearch();
 
  private:
     Board board;
     MoveGenerator generator;
     Evaluator evaluator;
 
-    TranspositionTable<SearchEntry, TT_SIZE> tTable {};
+    TranspositionTable<SearchEntry, TT_SIZE> tTable{};
 
+    bool canSearch = false;
+
+    void rootSearch(const SearchParams &params);
     int alphaBeta(int depthLeft, int alpha, int beta, bool isPV);
-};
 
-struct SearchResult {
-    Move bestMove;
-    int evaluation;
-    SearchResult(const Move &best_move, int evaluation) : bestMove(best_move), evaluation(evaluation) {}
 };
 
 #endif //BOOMCHESS_SRC_SEARCH_H_

@@ -2,19 +2,29 @@
 // Created by marty on 2022-11-17.
 //
 
-#include <iostream>
 #include <iomanip>
+#include <future>
 #include "Search.h"
 #include "Metrics.h"
-#include "Timer.h"
+#include "UCI.h"
 
-void Search::search(int depth) {
-    Timer timer;
-    //iterative deepening
+void Search::startSearch(const SearchParams &params) {
+    if (!canSearch) {
+        canSearch = true;
+        std::thread([&]() { rootSearch(params); }).detach();
+    }
+}
+
+void Search::killSearch() {
+    canSearch = false;
+}
+
+void Search::rootSearch(const SearchParams &params) {
     Move bestMove(0, 0, MoveFlags::NULL_MOVE);
-    int bestEval = EVAL_MIN;
-    for (int currentDepth = 0; currentDepth < depth; currentDepth++) {
-        timer.start();
+    Metric<NODES_SEARCHED>::set(0);
+
+    for (int currentDepth = 0; currentDepth < params.depthLimit; currentDepth++) {
+        int bestEval = EVAL_MIN;
         generator.generateMoves(board);
         if (currentDepth > 0) {
             generator.sortTT(bestMove);
@@ -24,6 +34,10 @@ void Search::search(int depth) {
             board.makeMove(move);
             if (board.isLegal()) {
                 int eval = -alphaBeta(currentDepth, -1e9, 1e9, false);
+                if (!canSearch) {
+                    UCI::sendInfo(currentDepth + 1, bestEval, bestMove);
+                    goto end;
+                }
                 if (eval > bestEval) {
                     bestEval = eval;
                     bestMove = move;
@@ -31,19 +45,19 @@ void Search::search(int depth) {
             }
             board.unmakeMove();
         }
-        timer.end();
-        std::cout << "Depth: " << std::setw(2) << currentDepth + 1 << " | ";
-        std::cout << "Eval: " << std::setprecision(2) << std::setw(5) << bestEval / 100.0 << " | ";
-        std::cout << "Best Move: " << Board::moveToString(bestMove) << " | ";
-        std::cout << std::setprecision(4);
-        std::cout << "Duration: " << std::setw(8) << std::fixed << timer.getSeconds() << " | ";
-        std::cout << "NPS: " << std::setw(8) << std::fixed << Metric<NODES_SEARCHED>::get() / timer.getSeconds() << " | ";
-        std::cout << "PV hits: " << std::setw(4) << std::fixed << (double)Metric<PV_HITS>::get() << "| ";
-        std::cout << "PV misses: " << Metric<PV_MISSES>::get() << "\n";
+        UCI::sendInfo(currentDepth + 1, bestEval, bestMove);
     }
+
+    end:
+    canSearch = false;
+    UCI::sendResult(bestMove);
 }
 
 int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
+    if (!canSearch) {
+        return 0;
+    }
+
     int alphaStart = alpha;
     Metric<NODES_SEARCHED>::inc();
 
@@ -51,7 +65,6 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
     auto hash = board.zobristKey.value;
     Move ttMove(0, 0, MoveFlags::NULL_MOVE);
     if (tTable.at(hash).zobristKey == hash) {
-        Metric<CACHE_HITS>::inc();
         auto entry = tTable.at(hash);
 
         if (entry.depth >= depthLeft) {
@@ -120,10 +133,8 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
             eval = -alphaBeta(depthLeft - 1, -beta, -alpha, true);
         } else {
             eval = -alphaBeta(depthLeft - 1, -alpha - 1, -alpha, false);
-            Metric<PV_HITS>::inc();
             if (alpha < eval && eval < beta) {
                 eval = -alphaBeta(depthLeft - 1, -beta, -alpha, false);
-                Metric<PV_MISSES>::inc();
             }
         }
         board.unmakeMove();
@@ -167,5 +178,6 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
     generator.decreaseDepth();
     return value;
 }
+
 
 

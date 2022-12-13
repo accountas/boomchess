@@ -8,16 +8,16 @@
 #include "Board.h"
 #include "MoveGenerator.h"
 #include "TranspositionTable.h"
+#include "Search.h"
 
 class Driver {
-public:
+ public:
     void start();
-private:
+ private:
 
     void perft(int depth, const std::string &fen, bool divide);
     int perft(int maxDepth, int depth, bool divide, Board &board, MoveGenerator &generator);
     void perftTT(int depth, const std::string &fen, bool divide);
-
 
     struct PerftEntry {
         uint64_t hash = 0;
@@ -31,8 +31,9 @@ private:
                 MoveGenerator &generator,
                 TranspositionTable<PerftEntry, TT_SIZE> &tTable,
                 int &cacheHits);
+    std::vector<std::string> tokenizeString(const std::string &s, char delimiter);
+    void uciMode();
+    void uciPosition(const std::vector<std::string> &tokens, Search &search);
 };
-
-
 
 #endif //BOOMCHESS_DRIVER_H
