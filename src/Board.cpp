@@ -270,7 +270,7 @@ bool Board::isLegal() const {
     bool tookEnemyKing = pieceCounts[moveColor][KING] == 0;
     bool tookOurKing = pieceCounts[!moveColor][KING] == 0;
     bool inCheck = isAttacked(pieces[!moveColor][KING][0], &Board::isFriendly, true);
-    return tookEnemyKing || (!tookOurKing && !inCheck);
+    return (!tookOurKing) && (tookEnemyKing || !inCheck);
 }
 
 bool Board::isAttacked(int idx) const {
