@@ -3,7 +3,9 @@
 //
 
 #include <random>
+#include <iostream>
 #include "ZobristKey.h"
+#include "Timer.h"
 
 void ZobristKey::generateNumbers() {
     std::random_device r;
@@ -31,5 +33,4 @@ void ZobristKey::generateNumbers() {
             castlingRightNumbers[i][j] = uniform_dist(e);
         }
     }
-
 }

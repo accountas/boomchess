@@ -15,6 +15,12 @@ class Timer {
     void end(){
         endTs = std::chrono::high_resolution_clock::now();
     }
+    double getSecondsFromStart(){
+        auto now = std::chrono::high_resolution_clock::now();
+        auto delta = now - startTs;
+        auto nanos = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(delta).count();
+        return nanos / 1e9;
+    }
     double getSeconds(){
         auto delta = endTs - startTs;
         auto nanos = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(delta).count();

@@ -3,15 +3,20 @@
 //
 
 #include <iomanip>
-#include <future>
+#include <thread>
 #include "Search.h"
 #include "Metrics.h"
 #include "UCI.h"
+#include "Timer.h"
 
 void Search::startSearch(const SearchParams &params) {
     if (!canSearch) {
         canSearch = true;
         std::thread([&]() { rootSearch(params); }).detach();
+
+        if(params.timeLimit > 0){
+            std::thread([&]() { std::this_thread::sleep_for (std::chrono::milliseconds (params.timeLimit)); killSearch(); }).detach();
+        }
     }
 }
 
@@ -21,10 +26,13 @@ void Search::killSearch() {
 
 void Search::rootSearch(const SearchParams &params) {
     Move bestMove(0, 0, MoveFlags::NULL_MOVE);
+    int bestEval = EVAL_MIN;
+
+    Timer timer;
+    timer.start();
     Metric<NODES_SEARCHED>::set(0);
 
     for (int currentDepth = 0; currentDepth < params.depthLimit; currentDepth++) {
-        int bestEval = EVAL_MIN;
         generator.generateMoves(board);
         if (currentDepth > 0) {
             generator.sortTT(bestMove);
@@ -35,17 +43,17 @@ void Search::rootSearch(const SearchParams &params) {
             if (board.isLegal()) {
                 int eval = -alphaBeta(currentDepth, -1e9, 1e9, false);
                 if (!canSearch) {
-                    UCI::sendInfo(currentDepth + 1, bestEval, bestMove);
+                    UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
                     goto end;
                 }
-                if (eval > bestEval) {
+                if (i == 0 || eval > bestEval) {
                     bestEval = eval;
                     bestMove = move;
                 }
             }
             board.unmakeMove();
         }
-        UCI::sendInfo(currentDepth + 1, bestEval, bestMove);
+        UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
     }
 
     end:
@@ -55,6 +63,9 @@ void Search::rootSearch(const SearchParams &params) {
 
 int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
     if (!canSearch) {
+        return 0;
+    }
+    if (board.isRepetition()){
         return 0;
     }
 

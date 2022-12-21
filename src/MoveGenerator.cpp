@@ -33,10 +33,10 @@ void MoveGenerator::generatePawnMoves(const Board &board) {
         //forward or promote
         bool forwardClear = board.isEmpty(square + forward);
         if (forwardClear && Board::indexToRank(square) == promotionRank) {
-            addMove(square, square + forward, MoveFlags::BISHOP_PROMOTION);
-            addMove(square, square + forward, MoveFlags::KNIGHT_PROMOTION);
-            addMove(square, square + forward, MoveFlags::ROOK_PROMOTION);
-            addMove(square, square + forward, MoveFlags::QUEEN_PROMOTION);
+            addMove(square, square + forward, MoveFlags::BISHOP_PROMOTION | MoveFlags::PAWN_MOVE);
+            addMove(square, square + forward, MoveFlags::KNIGHT_PROMOTION | MoveFlags::PAWN_MOVE);
+            addMove(square, square + forward, MoveFlags::ROOK_PROMOTION | MoveFlags::PAWN_MOVE);
+            addMove(square, square + forward, MoveFlags::QUEEN_PROMOTION | MoveFlags::PAWN_MOVE);
         } else if (forwardClear) {
             addMove(square, square + forward);
         }
@@ -45,7 +45,7 @@ void MoveGenerator::generatePawnMoves(const Board &board) {
         if (Board::indexToRank(square) == startingRank
             && forwardClear
             && board.isEmpty(square + forward * 2)) {
-            addMove(square, square + forward * 2, MoveFlags::DOUBLE_PAWN);
+            addMove(square, square + forward * 2, MoveFlags::DOUBLE_PAWN | MoveFlags::PAWN_MOVE);
         }
 
         //attack moves
@@ -53,7 +53,7 @@ void MoveGenerator::generatePawnMoves(const Board &board) {
         if (Board::inBounds(attackRight)
             && !board.isEmpty(attackRight)
             && board.isEnemy(attackRight)) {
-            addMove(square, attackRight, MoveFlags::CAPTURE);
+            addMove(square, attackRight, MoveFlags::CAPTURE | MoveFlags::PAWN_MOVE);
             calculateLatestCaptureScore(board);
 
         }
@@ -62,7 +62,7 @@ void MoveGenerator::generatePawnMoves(const Board &board) {
         if (Board::inBounds(attackLeft)
             && !board.isEmpty(attackLeft)
             && board.isEnemy(attackLeft)) {
-            addMove(square, attackLeft, MoveFlags::CAPTURE);
+            addMove(square, attackLeft, MoveFlags::CAPTURE | MoveFlags::PAWN_MOVE);
             calculateLatestCaptureScore(board);
 
         }
@@ -72,13 +72,17 @@ void MoveGenerator::generatePawnMoves(const Board &board) {
             && square + Direction::LEFT == board.enPassantSquare
             && board.isEnemy(square + Direction::LEFT)
             && board.isEmpty(square + Direction::LEFT + forward)) {
-            addMove(square, square + Direction::LEFT + forward, MoveFlags::CAPTURE | MoveFlags::EN_PASSANT_CAPTURE);
+            addMove(square,
+                    square + Direction::LEFT + forward,
+                    MoveFlags::CAPTURE | MoveFlags::EN_PASSANT_CAPTURE | MoveFlags::PAWN_MOVE);
         }
         if (board.enPassantSquare != -1
             && square + Direction::RIGHT == board.enPassantSquare
             && board.isEnemy(square + Direction::RIGHT)
             && board.isEmpty(square + Direction::RIGHT + forward)) {
-            addMove(square, square + Direction::RIGHT + forward, MoveFlags::CAPTURE | MoveFlags::EN_PASSANT_CAPTURE);
+            addMove(square,
+                    square + Direction::RIGHT + forward,
+                    MoveFlags::CAPTURE | MoveFlags::EN_PASSANT_CAPTURE | MoveFlags::PAWN_MOVE);
         }
 
     }
@@ -210,13 +214,13 @@ void MoveGenerator::sortTill(int idx, const Board &board) {
             //assign MVV-LVA score, we want score to be > 0 for equal captures and < 0 for loosing captures
             if (move.flags & MoveFlags::CAPTURE) {
                 curMoveScore[0] = captureScore[curDepth][j];
-                if(curMoveScore[0] > 0) curMoveScore[0]++;
+                if (curMoveScore[0] > 0) curMoveScore[0]++;
             }
 
             //assign killer heuristic score
-            if(!(move.flags & MoveFlags::CAPTURE)){
-                for(const Move &killer : killers[curDepth]){
-                    if(killer.same(move)){
+            if (!(move.flags & MoveFlags::CAPTURE)) {
+                for (const Move &killer : killers[curDepth]) {
+                    if (killer.same(move)) {
                         curMoveScore[1] = 1;
                         break;
                     }

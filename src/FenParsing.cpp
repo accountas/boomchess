@@ -7,7 +7,6 @@
 #include "Board.h"
 
 Board Board::fromFen(const std::string &fen) {
-    printf("%s\n", fen.c_str());
     std::istringstream ss(fen);
 
     std::string fenPieces;

@@ -13,7 +13,6 @@ const int KILLER_MOVES_N = 2;
 const int NULL_MOVE_R = 2;
 const std::string DEFAULT_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-
 //disable by setting value to negative number
 enum MetricTypes : int {
     NODES_SEARCHED,
@@ -26,7 +25,6 @@ struct SearchParams {
     int depthLimit;
     int timeLimit;
 };
-
 
 /**
  * Common enums
@@ -83,23 +81,29 @@ namespace MoveFlags {
     //has pawn made a double moveColor (for en passant)
     const int DOUBLE_PAWN = 1 << 1;
 
+    //was pawn moved, for three-fold speedup
+    const int PAWN_MOVE = 1 << 2;
+
     //if captured en passant, also need to add CAPTURE flag
-    const int EN_PASSANT_CAPTURE = 1 << 2;
+    const int EN_PASSANT_CAPTURE = 1 << 3;
 
     //promotion types
-    const int KNIGHT_PROMOTION = 1 << 3;
-    const int BISHOP_PROMOTION = 1 << 4;
-    const int ROOK_PROMOTION = 1 << 5;
-    const int QUEEN_PROMOTION = 1 << 6;
+    const int KNIGHT_PROMOTION = 1 << 4;
+    const int BISHOP_PROMOTION = 1 << 5;
+    const int ROOK_PROMOTION = 1 << 6;
+    const int QUEEN_PROMOTION = 1 << 7;
     const int PROMOTION_SUBMASK = KNIGHT_PROMOTION | BISHOP_PROMOTION | ROOK_PROMOTION | QUEEN_PROMOTION;
 
     //castling
-    const int CASTLE_RIGHT = 1 << 7;
-    const int CASTLE_LEFT = 1 << 8;
+    const int CASTLE_RIGHT = 1 << 8;
+    const int CASTLE_LEFT = 1 << 9;
     const int CASTLE_SUBMASK = CASTLE_RIGHT | CASTLE_LEFT;
 
     //null move heuristic
-    const int NULL_MOVE = 1 << 9;
+    const int NULL_MOVE = 1 << 10;
+
+    //moves that cant be repeated
+    const int NON_REPEATABLE_MASK = CASTLE_SUBMASK | PAWN_MOVE | CAPTURE | PROMOTION_SUBMASK;
 }
 
 namespace Direction {

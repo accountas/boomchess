@@ -3,19 +3,14 @@
 //
 
 #include <iostream>
-#include <chrono>
 #include <iomanip>
-#include <cassert>
 #include <algorithm>
 #include "Driver.h"
 #include "Board.h"
-#include "MoveGenerator.h"
 #include "Search.h"
-#include "Timer.h"
 #include "UCI.h"
 
 void Driver::start() {
-
     std::string input;
     while (true) {
         getline(std::cin, input);
@@ -46,6 +41,7 @@ void Driver::uciMode() {
 
     std::cout << "id name BoomChess" << std::endl;
     std::cout << "id author Martynas Cibulskis" << std::endl;
+    std::cout << "option name UCI_Variant type combo default atomic var atomic" << std::endl;
     std::cout << "uciok" << std::endl;
 
     Search search;

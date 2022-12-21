@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <iomanip>
 
 #include "UCI.h"
 #include "MoveGenerator.h"
@@ -56,7 +57,7 @@ SearchParams UCI::parseGo(const std::vector<std::string> &tokens) {
     auto moveTimeToken = std::find(tokens.begin(), tokens.end(), "movetime");
 
     if(moveTimeToken == tokens.end()){
-        params.timeLimit = 60 * 60 * 24;
+        params.timeLimit = 1000 * 60 * 60;
     } else {
         params.timeLimit = std::stoi(*std::next(moveTimeToken));
     }
@@ -71,12 +72,14 @@ SearchParams UCI::parseGo(const std::vector<std::string> &tokens) {
 }
 
 
-void UCI::sendInfo(int depth, int eval, const Move &best) {
+void UCI::sendInfo(int depth, int eval, const Move &best, double time) {
     std::cout << "info ";
     std::cout << "depth " << depth << " ";
-    std::cout << "eval " << eval << " ";
+    std::cout << "score cp " << eval << " ";
     std::cout << "pv " << Board::moveToString(best) << " ";
     std::cout << "nodes " << Metric<NODES_SEARCHED>::get() << " ";
+    std::cout << "nps " <<  (int)(Metric<NODES_SEARCHED>::get() / time) << " ";
+    std::cout << "time " << (int)(time * 1000) << " ";
     std::cout << std::endl;
 }
 void UCI::sendResult(const Move &bestMove) {

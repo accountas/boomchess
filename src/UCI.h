@@ -12,7 +12,7 @@ class UCI {
  public:
     static Board parsePosition(const std::vector<std::string> &tokens);
     static SearchParams parseGo(const std::vector<std::string> &tokens);
-    static void sendInfo(int depth, int eval, const Move &best);
+    static void sendInfo(int depth, int eval, const Move &best, double time);
     static void sendResult(const Move &bestMove);
 };
 

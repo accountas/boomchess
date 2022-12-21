@@ -31,6 +31,10 @@ Board::Board(const BoardArray &board,
     zobristKey.flipCastlingRights(WHITE, castling_rights[WHITE]);
     zobristKey.flipCastlingRights(BLACK, castling_rights[BLACK]);
     setEnPassantSquare(en_passant_square);
+
+    //reserve sizes for vectors
+    moveHistory.reserve(256);
+    captureHistory.reserve(64);
 }
 
 void Board::makeMove(const Move &move) {
@@ -38,7 +42,8 @@ void Board::makeMove(const Move &move) {
                              0,
                              enPassantSquare,
                              numHalfMoves,
-                             castlingRights);
+                             castlingRights,
+                             0);
 
     //update castling rights
     if (board[move.from].type() == KING) {
@@ -75,8 +80,8 @@ void Board::makeMove(const Move &move) {
                           ? move.to
                           : move.to + (moveColor == WHITE ? Direction::DOWN : Direction::UP);
 
-        captureHistory.push({move.from, board[move.from]});
-        captureHistory.push({capturedIdx, board[capturedIdx]});
+        captureHistory.emplace_back(move.from, board[move.from]);
+        captureHistory.emplace_back(capturedIdx, board[capturedIdx]);
 
         removePiece(capturedIdx, true);
         removePiece(move.from);
@@ -85,7 +90,7 @@ void Board::makeMove(const Move &move) {
             int idx = move.to + direction;
             if (Board::inBounds(idx) && !isEmpty(idx) && board[idx].type() != PieceType::PAWN) {
                 moveInfo.numCaptured++;
-                captureHistory.push({idx, board[idx]});
+                captureHistory.emplace_back(idx, board[idx]);
                 removePiece(idx, true);
             }
         }
@@ -128,20 +133,21 @@ void Board::makeMove(const Move &move) {
     }
 
     //quiet move
-    if ((move.flags & (~MoveFlags::DOUBLE_PAWN)) == 0 && !(move.flags & MoveFlags::NULL_MOVE)) {
+    if ((move.flags & ~(MoveFlags::DOUBLE_PAWN | MoveFlags::PAWN_MOVE)) == 0 && !(move.flags & MoveFlags::NULL_MOVE)) {
         movePiece(move.from, move.to);
     }
 
     //for undo
-    moveHistory.push(moveInfo);
+    moveInfo.zobristKey = zobristKey.value;
+    moveHistory.push_back(moveInfo);
 
     //change player color
     flipMoveColor();
 }
 
 void Board::unmakeMove() {
-    auto lastMoveUndo = moveHistory.top();
-    moveHistory.pop();
+    auto lastMoveUndo = moveHistory.back();
+    moveHistory.pop_back();
 
     //restore game state
     flipMoveColor();
@@ -155,8 +161,8 @@ void Board::unmakeMove() {
     //restore captures
     if (move.flags & MoveFlags::CAPTURE) {
         for (int i = 0; i < lastMoveUndo.numCaptured; i++) {
-            auto pieceToRestore = captureHistory.top();
-            captureHistory.pop();
+            auto pieceToRestore = captureHistory.back();
+            captureHistory.pop_back();
             addPiece(pieceToRestore.first, pieceToRestore.second);
         }
     }
@@ -186,7 +192,7 @@ void Board::unmakeMove() {
     }
 
     //restore quiet move
-    if ((move.flags & (~MoveFlags::DOUBLE_PAWN)) == 0 && !(move.flags & MoveFlags::NULL_MOVE)) {
+    if ((move.flags & ~(MoveFlags::DOUBLE_PAWN | MoveFlags::PAWN_MOVE)) == 0 && !(move.flags & MoveFlags::NULL_MOVE)) {
         movePiece(move.to, move.from);
     }
 }
@@ -339,15 +345,41 @@ std::string Board::toString() const {
 
     return result;
 }
-
+bool Board::isRepetition() const {
+    uint64_t lastHash = moveHistory.back().zobristKey;
+    int seen = 0;
+    for (auto it = moveHistory.rbegin(); it != moveHistory.rend(); it = next(it)) {
+        auto move = *it;
+        if (move.move.flags & MoveFlags::NULL_MOVE) {
+            continue;
+        }
+        if (move.move.flags & MoveFlags::NON_REPEATABLE_MASK){
+            return false;
+        }
+        if (lastHash == move.zobristKey) {
+            if (++seen == 3) return true;
+        }
+    }
+    return false;
+}
+std::string Board::moveToString(const Move &move) {
+    auto result =  indexToString(move.from) + indexToString(move.to);
+    if(move.flags | MoveFlags::QUEEN_PROMOTION) result += 'q';
+    if(move.flags | MoveFlags::BISHOP_PROMOTION) result += 'b';
+    if(move.flags | MoveFlags::ROOK_PROMOTION) result += 'r';
+    if(move.flags | MoveFlags::KNIGHT_PROMOTION) result += 'n';
+    return result;
+}
 
 Board::MoveInfo::MoveInfo(const Move &move,
                           int num_captured,
                           int prev_en_passant,
                           int prev_num_half_moves,
-                          const std::array<int, 2> &previous_castling_rights)
+                          const std::array<int, 2> &previous_castling_rights,
+                          uint64_t zobristKey)
     : move(move),
       numCaptured(num_captured),
       prevEnPassant(prev_en_passant),
       prevNumHalfMoves(prev_num_half_moves),
-      previousCastlingRights(previous_castling_rights) {}
+      previousCastlingRights(previous_castling_rights),
+      zobristKey(zobristKey) {}
