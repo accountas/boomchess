@@ -42,6 +42,7 @@ void Search::rootSearch(const SearchParams &params) {
             board.makeMove(move);
             if (board.isLegal()) {
                 int eval = -alphaBeta(currentDepth, -1e9, 1e9, false);
+                board.unmakeMove();
                 if (!canSearch) {
                     UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
                     goto end;
@@ -50,8 +51,14 @@ void Search::rootSearch(const SearchParams &params) {
                     bestEval = eval;
                     bestMove = move;
                 }
+                if(bestEval == EVAL_MAX){
+                    UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
+                    goto end;
+                }
+            } else {
+                board.unmakeMove();
             }
-            board.unmakeMove();
+
         }
         UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
     }
