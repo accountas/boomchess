@@ -37,6 +37,9 @@ void Search::rootSearch(const SearchParams &params) {
         if (currentDepth > 0) {
             generator.sortTT(bestMove);
         }
+        if(bestMove.flags & MoveFlags::NULL_MOVE){
+            bestMove = generator[0];
+        }
         for (int i = 0; i < generator.size(); i++) {
             auto move = generator.getSorted(i, board);
             board.makeMove(move);
