@@ -37,10 +37,13 @@ class MoveGenerator {
         sortTill(idx, board);
         return (*this)[idx];
     }
+
     Move &operator[](int idx) {
         return moves[curDepth][idx];
     }
+
     void markKiller(int idx);
+    bool isGoodCapture(int idx);
 
  private:
     int curDepth = 0;

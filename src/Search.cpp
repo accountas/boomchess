@@ -225,27 +225,28 @@ int Search::quiescence(int alpha, int beta){
     for(int i = 0; i < generator.size(); i++){
         auto move = generator.getSorted(i, board);
 
-        if(move.flags & MoveFlags::CAPTURE || board.isInCheck()){
-            board.makeMove(move);
+        if(!board.isInCheck() && !generator.isGoodCapture(i)){
+            break;
+        }
 
-            if(!board.isLegal()){
-                board.unmakeMove();
-                continue;
-            }
+        board.makeMove(move);
 
-            movesChecked++;
-
-            int score = -quiescence(-beta, -alpha);
+        if(!board.isLegal()){
             board.unmakeMove();
+            continue;
+        }
 
-            if(score >= beta){
-                generator.decreaseDepth();
-                return beta;
-            }
-            if(score > alpha){
-                alpha = score;
-            }
+        movesChecked++;
 
+        int score = -quiescence(-beta, -alpha);
+        board.unmakeMove();
+
+        if(score >= beta){
+            generator.decreaseDepth();
+            return beta;
+        }
+        if(score > alpha){
+            alpha = score;
         }
     }
 

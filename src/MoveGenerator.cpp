@@ -194,6 +194,7 @@ void MoveGenerator::generateSlidingMoves(const Board &board, int startingSquare,
         }
     }
 }
+
 void MoveGenerator::sortTill(int idx, const Board &board) {
     if (idx < nSorted[curDepth]) {
         return;
@@ -269,5 +270,10 @@ void MoveGenerator::markKiller(int idx) {
         }
         killers[curDepth][0] = move;
     }
+}
+
+bool MoveGenerator::isGoodCapture(int idx){
+    auto move = moves[curDepth][idx];
+    return move.flags & MoveFlags::CAPTURE && captureScore[curDepth][idx] >= 0;
 }
 
