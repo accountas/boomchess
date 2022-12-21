@@ -232,7 +232,7 @@ void Board::removePiece(int idx, bool capture) {
         if (idx == positionToIndex(7, 0))
             setCastlingRights(WHITE, castlingRights[WHITE] & ~CastlingRight::KING_SIDE);
         if (idx == positionToIndex(7, 7))
-            setCastlingRights(BLACK, castlingRights[BLACK] & ~CastlingRight::QUEEN_SIDE);
+            setCastlingRights(BLACK, castlingRights[BLACK] & ~CastlingRight::KING_SIDE);
     }
 
     //remove from piece list by replacing with last element
