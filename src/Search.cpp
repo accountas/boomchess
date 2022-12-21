@@ -107,7 +107,7 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
 
     //base case
     if (depthLeft <= 0) {
-        return evaluator.evaluateRelative(board);
+        return quiescence(alpha, beta);
     }
 
     //null move heuristic
@@ -198,6 +198,64 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
 
     generator.decreaseDepth();
     return value;
+}
+
+int Search::quiescence(int alpha, int beta){
+    if(!canSearch){
+        return 0;
+    }
+
+    Metric<NODES_SEARCHED>::inc();
+
+    //Standing Pat
+    if(!board.isInCheck()){
+        int standPat = evaluator.evaluateRelative(board);
+        if (standPat >= beta){
+            return standPat;
+        }
+        if(alpha < standPat){
+            alpha = standPat;
+        }
+    }
+
+    generator.increaseDepth();
+    generator.generateMoves(board);
+
+    int movesChecked = 0;
+    for(int i = 0; i < generator.size(); i++){
+        auto move = generator.getSorted(i, board);
+
+        if(move.flags & MoveFlags::CAPTURE || board.isInCheck()){
+            board.makeMove(move);
+
+            if(!board.isLegal()){
+                board.unmakeMove();
+                continue;
+            }
+
+            movesChecked++;
+
+            int score = -quiescence(-beta, -alpha);
+            board.unmakeMove();
+
+            if(score >= beta){
+                generator.decreaseDepth();
+                return beta;
+            }
+            if(score > alpha){
+                alpha = score;
+            }
+
+        }
+    }
+
+    generator.decreaseDepth();
+
+    if (movesChecked == 0) {
+        return evaluator.evaluateRelative(board);
+    }
+
+    return alpha;
 }
 
 
