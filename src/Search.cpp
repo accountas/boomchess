@@ -37,30 +37,35 @@ void Search::rootSearch(const SearchParams &params) {
         if (currentDepth > 0) {
             generator.sortTT(bestMove);
         }
-        if(bestMove.flags & MoveFlags::NULL_MOVE){
-            bestMove = generator[0];
-        }
         for (int i = 0; i < generator.size(); i++) {
             auto move = generator.getSorted(i, board);
             board.makeMove(move);
-            if (board.isLegal()) {
-                int eval = -alphaBeta(currentDepth, -1e9, 1e9, false);
+
+            if(!board.isLegal()){
                 board.unmakeMove();
-                if (!canSearch) {
-                    UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
-                    goto end;
-                }
-                if (i == 0 || eval > bestEval) {
-                    bestEval = eval;
-                    bestMove = move;
-                }
-                if(bestEval == EVAL_MAX){
-                    UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
-                    goto end;
-                }
-            } else {
-                board.unmakeMove();
+                continue;
             }
+
+            if(bestMove.flags & MoveFlags::NULL_MOVE){
+                bestMove = generator[0];
+            }
+
+            int eval = -alphaBeta(currentDepth, -1e9, 1e9, false);
+            board.unmakeMove();
+
+            if (!canSearch) {
+                UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
+                goto end;
+            }
+            if (i == 0 || eval > bestEval) {
+                bestEval = eval;
+                bestMove = move;
+            }
+            if(bestEval == EVAL_MAX){
+                UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
+                goto end;
+            }
+
 
         }
         UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
