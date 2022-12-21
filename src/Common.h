@@ -156,7 +156,7 @@ const std::array<int, 8> explosionDirections = allDirections;
  * Board Evaluation constants
  */
 const std::array<int, 7> PieceWeights = {
-    0, 100, 300, 300, 500, 900, EVAL_MAX
+    0, 100, 90, 0, 220, 850, EVAL_MAX
 };
 
 const std::array<std::array<int, 64>, 7> PieceSquareTables = {{
