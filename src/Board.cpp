@@ -364,10 +364,10 @@ bool Board::isRepetition() const {
 }
 std::string Board::moveToString(const Move &move) {
     auto result =  indexToString(move.from) + indexToString(move.to);
-    if(move.flags | MoveFlags::QUEEN_PROMOTION) result += 'q';
-    if(move.flags | MoveFlags::BISHOP_PROMOTION) result += 'b';
-    if(move.flags | MoveFlags::ROOK_PROMOTION) result += 'r';
-    if(move.flags | MoveFlags::KNIGHT_PROMOTION) result += 'n';
+    if(move.flags & MoveFlags::QUEEN_PROMOTION) result += 'q';
+    if(move.flags & MoveFlags::BISHOP_PROMOTION) result += 'b';
+    if(move.flags & MoveFlags::ROOK_PROMOTION) result += 'r';
+    if(move.flags & MoveFlags::KNIGHT_PROMOTION) result += 'n';
     return result;
 }
 
