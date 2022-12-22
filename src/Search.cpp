@@ -12,10 +12,10 @@
 void Search::startSearch(const SearchParams &params) {
     if (!canSearch) {
         canSearch = true;
-        std::thread([&]() { rootSearch(params); }).detach();
+        std::thread([&, params]() { rootSearch(params); }).detach();
 
         if(params.timeLimit > 0){
-            std::thread([&]() { std::this_thread::sleep_for (std::chrono::milliseconds (params.timeLimit)); killSearch(); }).detach();
+            std::thread([&, params]() { std::this_thread::sleep_for (std::chrono::milliseconds (params.timeLimit)); killSearch(); }).detach();
         }
     }
 }
@@ -47,7 +47,7 @@ void Search::rootSearch(const SearchParams &params) {
             }
 
             if(bestMove.flags & MoveFlags::NULL_MOVE){
-                bestMove = generator[1];
+                bestMove = generator[i];
             }
 
             int eval = -alphaBeta(currentDepth, -1e9, 1e9, false);
