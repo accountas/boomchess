@@ -32,9 +32,28 @@ Board::Board(const BoardArray &board,
     zobristKey.flipCastlingRights(BLACK, castling_rights[BLACK]);
     setEnPassantSquare(en_passant_square);
 
-    //reserve sizes for vectors
     moveHistory.reserve(256);
     captureHistory.reserve(64);
+
+    precalculateAttackTable();
+}
+void Board::precalculateAttackTable() {
+    for (int distance = 1; distance <= 7; distance++) {
+        for (int direction : straightDirections) {
+            attackDirection[QUEEN][0x77 + direction * distance] = direction;
+            attackDirection[ROOK] [0x77 + direction * distance]= direction;
+        }
+        for (int direction : diagonalDirections) {
+            attackDirection[QUEEN][0x77 + direction * distance] = direction;
+            attackDirection[BISHOP][0x77 + direction * distance] = direction;
+        }
+    }
+    for (int direction : knightDirections) {
+        attackDirection[KNIGHT][0x77 + direction] = direction;
+    }
+    for (int direction : allDirections) {
+        attackDirection[KING][0x77 + direction] = direction;
+    }
 }
 
 void Board::makeMove(const Move &move) {
@@ -269,48 +288,44 @@ void Board::flipMoveColor() {
 bool Board::isLegal() const {
     bool tookEnemyKing = pieceCounts[moveColor][KING] == 0;
     bool tookOurKing = pieceCounts[!moveColor][KING] == 0;
-    bool inCheck = isAttacked(pieces[!moveColor][KING][0], &Board::isFriendly, true);
+    bool inCheck = isAttacked(pieces[!moveColor][KING][0], true) && !kingsTouch();
     return (!tookOurKing) && (tookEnemyKing || !inCheck);
 }
 
 bool Board::isAttacked(int idx) const {
-    return isAttacked(idx, &Board::isEnemy);
+    return isAttacked(idx, false);
 }
 
-bool Board::isAttacked(int idx, bool (Board::*isEnemyFn)(int) const, bool inverseColor) const {
-    //queen and rook attacks
-    for (int direction : straightDirections) {
-        int hit = castRay(idx, direction);
-        if ((this->*isEnemyFn)(hit)) {
-            if (board[hit].type() == QUEEN || board[hit].type() == ROOK) return true;
-        }
-    }
-
-    //queen and bishop attacks
-    for (int direction : diagonalDirections) {
-        int hit = castRay(idx, direction);
-        if ((this->*isEnemyFn)(hit)) {
-            if (board[hit].type() == QUEEN || board[hit].type() == BISHOP) return true;
-        }
-    }
-
-    //knight attacks
-    for (int direction : knightDirections) {
-        int hit = idx + direction;
-        if (inBounds(hit) && (this->*isEnemyFn)(hit) && board[hit].type() == KNIGHT) {
-            return true;
-        }
-    }
+bool Board::isAttacked(int idx, bool inverseColor) const {
+    int enemyColor = moveColor ^ inverseColor ^ 1;
 
     //pawn attacks
-    int forward = ((moveColor == WHITE) ^ inverseColor) ? Direction::UP : Direction::DOWN;
-    int pawnRight = idx + forward + Direction::RIGHT;
-    int pawnLeft = idx + forward + Direction::LEFT;
-    if (Board::inBounds(pawnRight) && (this->*isEnemyFn)(pawnRight) && board[pawnRight].type() == PAWN)
-        return true;
+    for (int direction : {Direction::RIGHT, Direction::LEFT}) {
+        int pawnPos = idx + direction + ((enemyColor == BLACK) ? Direction::UP : Direction::DOWN);
+        if (Board::inBounds(pawnPos)
+            && board[pawnPos].type() == PAWN
+            && board[pawnPos].color() == enemyColor)
+            return true;
+    }
 
-    if (Board::inBounds(pawnLeft) && (this->*isEnemyFn)(pawnLeft) && board[pawnLeft].type() == PAWN)
-        return true;
+    //other pieces
+    for (int piece : PieceTypes) {
+        if (piece == PAWN || piece == KING)
+            continue;
+
+        for (int i = 0; i < pieceCounts[enemyColor][piece]; i++) {
+            int enemyPos = pieces[enemyColor][piece][i];
+            int enemyAttackDir = attackDirection[piece][0x77 + idx - enemyPos];
+
+            if (enemyAttackDir == 0) {
+                continue;
+            }
+
+            if (piece == KNIGHT || castRay(enemyPos, enemyAttackDir) == idx) {
+                return true;
+            }
+        }
+    }
 
     return false;
 }
@@ -327,7 +342,7 @@ int Board::castRay(int startingSquare, int direction) const {
     }
 }
 
-std::string Board::toString() const {
+[[maybe_unused]] std::string Board::toString() const {
     std::string result;
 
     for (int i = 7; i >= 0; i--) {
@@ -353,7 +368,7 @@ bool Board::isRepetition() const {
         if (move.move.flags & MoveFlags::NULL_MOVE) {
             continue;
         }
-        if (move.move.flags & MoveFlags::NON_REPEATABLE_MASK){
+        if (move.move.flags & MoveFlags::NON_REPEATABLE_MASK) {
             return false;
         }
         if (lastHash == move.zobristKey) {
@@ -363,11 +378,11 @@ bool Board::isRepetition() const {
     return false;
 }
 std::string Board::moveToString(const Move &move) {
-    auto result =  indexToString(move.from) + indexToString(move.to);
-    if(move.flags & MoveFlags::QUEEN_PROMOTION) result += 'q';
-    if(move.flags & MoveFlags::BISHOP_PROMOTION) result += 'b';
-    if(move.flags & MoveFlags::ROOK_PROMOTION) result += 'r';
-    if(move.flags & MoveFlags::KNIGHT_PROMOTION) result += 'n';
+    auto result = indexToString(move.from) + indexToString(move.to);
+    if (move.flags & MoveFlags::QUEEN_PROMOTION) result += 'q';
+    if (move.flags & MoveFlags::BISHOP_PROMOTION) result += 'b';
+    if (move.flags & MoveFlags::ROOK_PROMOTION) result += 'r';
+    if (move.flags & MoveFlags::KNIGHT_PROMOTION) result += 'n';
     return result;
 }
 

@@ -10,8 +10,6 @@
 #include "Evaluator.h"
 #include "TranspositionTable.h"
 
-struct SearchResult;
-
 class Search {
  public:
     Search() : board(Board::fromFen(DEFAULT_FEN)) {}

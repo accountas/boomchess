@@ -30,9 +30,6 @@ class MoveGenerator {
     void decreaseDepth() {
         curDepth--;
     }
-    void setDepth(int depth) {
-        curDepth = depth;
-    }
     Move &getSorted(int idx, const Board &board) {
         sortTill(idx, board);
         return (*this)[idx];

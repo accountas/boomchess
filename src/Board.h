@@ -42,7 +42,7 @@ class Board {
 
     static Board fromFen(const std::string &fen);
 
-    std::string toString() const;
+    [[maybe_unused]] std::string toString() const;
 
     void makeMove(const Move &move);
     void unmakeMove();
@@ -53,18 +53,19 @@ class Board {
     bool isAttacked(int idx) const;
     bool isLegal() const;
     bool isRepetition() const;
+    bool kingsTouch() const {
+        int whiteKing = pieces[WHITE][KING][0];
+        int blackKing = pieces[BLACK][KING][0];
+        return attackDirection[KING][0x77 + whiteKing - blackKing] != 0;
+    }
     bool isKingCaptured() const {
         return pieceCounts[moveColor][KING] == 0;
     };
     bool isInCheck() const {
-        return !isKingCaptured() && isAttacked(pieces[moveColor][KING][0]);
+        return !isKingCaptured() && !kingsTouch() && isAttacked(pieces[moveColor][KING][0]);
     }
-
     bool isEnemy(int idx) const {
         return !isEmpty(idx) && board[idx].color() != moveColor;
-    }
-    bool isFriendly(int idx) const {
-        return !isEmpty(idx) && board[idx].color() == moveColor;
     }
     bool isEmpty(int idx) const {
         return board[idx].piece == PieceType::EMPTY;
@@ -84,7 +85,7 @@ class Board {
     static int stringToIndex(const std::string &square) {
         return positionToIndex(square[0] - 'a', square[1] - '0' - 1);
     }
-    static Move stringToMove(const std::string &move, int flags) {
+    [[maybe_unused]] static Move stringToMove(const std::string &move, int flags) {
         int from = stringToIndex(move.substr(0, 2));
         int to = stringToIndex(move.substr(2));
         return {from, to, flags};
@@ -101,7 +102,7 @@ class Board {
     Piece operator[](int index) const {
         return board[index];
     }
-    std::string getMovesMade() {
+    [[maybe_unused]] std::string getMovesMade() {
         std::string result;
         for (const auto &move : moveHistory) {
             result += moveToString(move.move);
@@ -135,10 +136,15 @@ class Board {
 
     //move gen util stuff
     int castRay(int startingSquare, int direction) const;
-    bool isAttacked(int idx, bool (Board::*isEnemyFn)(int) const, bool inverseColor = false) const;
     void setEnPassantSquare(int square);
     void setCastlingRights(int color, int rights);
     void flipMoveColor();
+    bool isAttacked(int idx, bool inverseColor) const;
+
+    //attacker check utils
+    std::array<std::array<int, 256>, 7> attackDirection{};
+
+    void precalculateAttackTable();
 };
 
 #endif //BOOMCHESS_BOARD_H
