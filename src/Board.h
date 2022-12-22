@@ -53,11 +53,16 @@ class Board {
     bool isAttacked(int idx) const;
     bool isLegal() const;
     bool isRepetition() const;
+    bool kingsTouch() const {
+        int whiteKing = pieces[WHITE][KING][0];
+        int blackKing = pieces[BLACK][KING][0];
+        return attackDirection[KING][0x77 + whiteKing - blackKing] != 0;
+    }
     bool isKingCaptured() const {
         return pieceCounts[moveColor][KING] == 0;
     };
     bool isInCheck() const {
-        return !isKingCaptured() && isAttacked(pieces[moveColor][KING][0]);
+        return !isKingCaptured() && !kingsTouch() && isAttacked(pieces[moveColor][KING][0]);
     }
     bool isEnemy(int idx) const {
         return !isEmpty(idx) && board[idx].color() != moveColor;

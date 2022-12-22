@@ -288,7 +288,7 @@ void Board::flipMoveColor() {
 bool Board::isLegal() const {
     bool tookEnemyKing = pieceCounts[moveColor][KING] == 0;
     bool tookOurKing = pieceCounts[!moveColor][KING] == 0;
-    bool inCheck = isAttacked(pieces[!moveColor][KING][0], true);
+    bool inCheck = isAttacked(pieces[!moveColor][KING][0], true) && !kingsTouch();
     return (!tookOurKing) && (tookEnemyKing || !inCheck);
 }
 
