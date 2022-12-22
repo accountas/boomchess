@@ -56,6 +56,9 @@ void Driver::uciMode() {
 
         if (tokens[0] == "isready") {
             std::cout << "readyok" << std::endl;
+
+        } else if (tokens[0] == "ucinewgame") {
+            search = Search();
         } else if (tokens[0] == "position") {
             Board board = UCI::parsePosition(tokens);
             search.setBoard(board);
