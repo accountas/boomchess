@@ -48,7 +48,7 @@ void Driver::uciMode() {
     std::cout << "option name UCI_Variant type combo default atomic var atomic" << std::endl;
     std::cout << "uciok" << std::endl;
 
-    Search *search = new Search;
+    Search search;
 
     std::string input;
     while (true) {
@@ -58,25 +58,22 @@ void Driver::uciMode() {
         if (tokens[0] == "isready") {
             std::cout << "readyok" << std::endl;
         } else if (tokens[0] == "ucinewgame") {
-            delete search;
-            search = new Search();
+            search.resetCache();
         } else if (tokens[0] == "position") {
             Board board = UCI::parsePosition(tokens);
-            search->setBoard(board);
+            search.setBoard(board);
         } else if (tokens[0] == "go") {
             SearchParams params = UCI::parseGo(tokens);
-            search->startSearch(params);
+            search.startSearch(params);
         } else if (tokens[0] == "stop") {
-            search->killSearch();
+            search.killSearch();
         } else if (tokens[0] == "quit") {
-            search->killSearch();
+            search.killSearch();
             break;
         } else {
             std::cout << "Unknown Input: " << input << std::endl;
         }
     }
-
-    delete search;
 }
 
 std::vector<std::string> Driver::tokenizeString(const std::string &s, char delimiter) {

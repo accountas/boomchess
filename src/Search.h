@@ -21,6 +21,10 @@ class Search {
 
     void killSearch();
 
+    void resetCache(){
+        tTable.clear();
+    }
+
  private:
     Board board;
     MoveGenerator generator;

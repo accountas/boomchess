@@ -25,6 +25,8 @@ void Search::killSearch() {
 }
 
 void Search::rootSearch(const SearchParams &params) {
+    auto boardStart = board;
+
     Move bestMove(0, 0, MoveFlags::NULL_MOVE);
     int bestEval = EVAL_MIN;
 
@@ -72,6 +74,7 @@ void Search::rootSearch(const SearchParams &params) {
     }
 
     end:
+    board = boardStart;
     canSearch = false;
     UCI::sendResult(bestMove);
 }
