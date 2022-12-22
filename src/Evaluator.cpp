@@ -80,7 +80,7 @@ int Evaluator::getWinState(Board &board) {
         return board.isInCheck() ? WinState::LOST : WinState::TIE;
     }
 
-    if(board.numHalfMoves >= 50){
+    if(board.numHalfMoves >= 100){
         return WinState::TIE;
     } else {
         return WinState::NORMAL;
