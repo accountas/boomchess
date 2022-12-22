@@ -47,7 +47,7 @@ void Search::rootSearch(const SearchParams &params) {
             }
 
             if(bestMove.flags & MoveFlags::NULL_MOVE){
-                bestMove = generator[0];
+                bestMove = generator[1];
             }
 
             int eval = -alphaBeta(currentDepth, -1e9, 1e9, false);
