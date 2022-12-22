@@ -9,6 +9,7 @@
 #include "Board.h"
 #include "Search.h"
 #include "UCI.h"
+#include <bitset>
 
 void Driver::start() {
     std::string input;
@@ -21,15 +22,17 @@ void Driver::start() {
             break;
         }
         if (tokens[0] == "perft") {
-            auto fen = tokens[1];
-            int depth = std::stoi(tokens[2]);
-            bool tt = std::count(tokens.begin(), tokens.end(), "tt");
+            std::string fen = tokens[1];
+            for (int i = 2; i <= 6; i++)
+                fen += " " + tokens[i];
+
+            int depth = std::stoi(tokens[7]);
             bool divide = std::count(tokens.begin(), tokens.end(), "div");
-            if (tt) {
-                perftTT(depth, fen, divide);
-            } else {
-                perft(depth, fen, divide);
-            }
+            perft(depth, fen, divide);
+
+        }
+        if (tokens[0] == "test") {
+            perftTest();
         }
         if (tokens[0] == "q") {
             break;
