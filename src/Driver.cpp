@@ -10,7 +10,6 @@
 #include "Search.h"
 #include "UCI.h"
 #include <bitset>
-#include <cassert>
 
 void Driver::start() {
     std::string input;

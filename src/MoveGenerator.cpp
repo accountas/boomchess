@@ -75,6 +75,7 @@ void MoveGenerator::generatePawnMoves(const Board &board) {
             addMove(square,
                     square + Direction::LEFT + forward,
                     MoveFlags::CAPTURE | MoveFlags::EN_PASSANT_CAPTURE | MoveFlags::PAWN_MOVE);
+            calculateLatestCaptureScore(board);
         }
         if (board.enPassantSquare != -1
             && square + Direction::RIGHT == board.enPassantSquare
@@ -83,6 +84,7 @@ void MoveGenerator::generatePawnMoves(const Board &board) {
             addMove(square,
                     square + Direction::RIGHT + forward,
                     MoveFlags::CAPTURE | MoveFlags::EN_PASSANT_CAPTURE | MoveFlags::PAWN_MOVE);
+            calculateLatestCaptureScore(board);
         }
 
     }
@@ -256,6 +258,7 @@ void MoveGenerator::sortTT(const Move &move) {
     for (int i = 0; i < n[curDepth]; i++) {
         if (moves[curDepth][i].from == move.from && moves[curDepth][i].to == move.to) {
             std::swap(moves[curDepth][0], moves[curDepth][i]);
+            std::swap(captureScore[curDepth][0], captureScore[curDepth][i]);
             nSorted[curDepth] = 1;
             break;
         }
