@@ -34,6 +34,8 @@ void Search::rootSearch(const SearchParams &params) {
     timer.start();
     Metric<NODES_SEARCHED>::set(0);
 
+    generator.setDepth(0);
+
     for (int currentDepth = 0; currentDepth < params.depthLimit; currentDepth++) {
         generator.generateMoves(board);
         if (currentDepth > 0) {
