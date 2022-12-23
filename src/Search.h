@@ -21,7 +21,7 @@ class Search {
 
     void killSearch();
 
-    void resetCache(){
+    void resetCache() {
         tTable.clear();
     }
 
