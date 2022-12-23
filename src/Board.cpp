@@ -41,7 +41,7 @@ void Board::precalculateAttackTable() {
     for (int distance = 1; distance <= 7; distance++) {
         for (int direction : straightDirections) {
             attackDirection[QUEEN][0x77 + direction * distance] = direction;
-            attackDirection[ROOK] [0x77 + direction * distance]= direction;
+            attackDirection[ROOK][0x77 + direction * distance] = direction;
         }
         for (int direction : diagonalDirections) {
             attackDirection[QUEEN][0x77 + direction * distance] = direction;
@@ -383,6 +383,14 @@ std::string Board::moveToString(const Move &move) {
     if (move.flags & MoveFlags::BISHOP_PROMOTION) result += 'b';
     if (move.flags & MoveFlags::ROOK_PROMOTION) result += 'r';
     if (move.flags & MoveFlags::KNIGHT_PROMOTION) result += 'n';
+
+    //for uci compatability, engine does not treat last rank pawn captures as promotions
+    if (move.flags & MoveFlags::CAPTURE
+        && move.flags & MoveFlags::PAWN_MOVE
+        && (indexToRank(move.to) == 7 || indexToRank(move.to) == 0)) {
+        result += 'q';
+    }
+
     return result;
 }
 
