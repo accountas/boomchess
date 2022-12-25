@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <string>
 
-template<int ID, typename T = int>
+template<int ID, typename T = int64_t>
 class Metric {
  public:
     static void inc(T n = 1) {

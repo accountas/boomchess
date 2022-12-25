@@ -33,6 +33,8 @@ void Search::rootSearch(const SearchParams &params) {
     Timer timer;
     timer.start();
     Metric<NODES_SEARCHED>::set(0);
+    Metric<Q_NODES_SEARCHED>::set(0);
+    Metric<LEAF_NODES_SEARCHED>::set(0);
 
     generator.setDepth(0);
 
@@ -117,6 +119,7 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
 
     //base case
     if (depthLeft <= 0) {
+        Metric<LEAF_NODES_SEARCHED>::inc();
         return quiescence(alpha, beta);
     }
 
@@ -217,7 +220,7 @@ int Search::quiescence(int alpha, int beta){
         return 0;
     }
 
-    Metric<NODES_SEARCHED>::inc();
+    Metric<Q_NODES_SEARCHED>::inc();
 
     //Standing Pat
     if(!board.isInCheck()){
