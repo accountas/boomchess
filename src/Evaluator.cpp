@@ -3,6 +3,8 @@
 //
 
 #include "Evaluator.h"
+#include "Common.h"
+#include "EvalParms.h"
 Evaluator::Evaluator() {
 
 }
@@ -30,7 +32,7 @@ int Evaluator::evaluate(Board &board) {
 int Evaluator::materialAdvantage(Board &board) {
     int score = 0;
     for (int piece : PieceTypes) {
-        score += PieceWeights[piece] * (board.pieceCounts[WHITE][piece] - board.pieceCounts[BLACK][piece]);
+        score += EvalParams::PieceWeights[piece] * (board.pieceCounts[WHITE][piece] - board.pieceCounts[BLACK][piece]);
     }
     return score;
 }
@@ -46,7 +48,7 @@ int Evaluator::pieceSquareTable(Board &board) {
             int file = Board::indexToFile(piecePos);
             int rank = Board::indexToRank(piecePos);
             int lookUpIdx = (7 - rank) * 8 + file;
-            score += PieceSquareTables[piece][lookUpIdx];
+            score += EvalParams::PieceSquareTables[piece][lookUpIdx];
         }
     }
 
@@ -57,7 +59,7 @@ int Evaluator::pieceSquareTable(Board &board) {
             int file = Board::indexToFile(piecePos);
             int rank = Board::indexToRank(piecePos);
             int lookUpIdx = rank * 8 + file;
-            score -= PieceSquareTables[piece][lookUpIdx];
+            score -= EvalParams::PieceSquareTables[piece][lookUpIdx];
         }
     }
 

@@ -3,6 +3,8 @@
 //
 
 #include "MoveGenerator.h"
+#include "Common.h"
+#include "EvalParms.h"
 #include <tuple>
 
 void MoveGenerator::generateMoves(const Board &board) {
@@ -243,12 +245,12 @@ void MoveGenerator::sortTill(int idx, const Board &board) {
 
 void MoveGenerator::calculateLatestCaptureScore(const Board &board) {
     auto move = moves[curDepth][size() - 1];
-    int score = -PieceWeights[board[move.from].type()];
+    int score = -EvalParams::PieceWeights[board[move.from].type()];
     for (int direction : explosionDirections) {
         int captureIdx = move.to + direction;
         if (Board::inBounds(captureIdx) && !board.isEmpty(captureIdx)) {
             bool friendly = board[captureIdx].color() == board[move.from].color();
-            score += PieceWeights[board[captureIdx].type()] * (friendly ? -1 : 1);
+            score += EvalParams::PieceWeights[board[captureIdx].type()] * (friendly ? -1 : 1);
         }
     }
     captureScore[curDepth][size() - 1] = score;
