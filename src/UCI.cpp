@@ -73,14 +73,16 @@ SearchParams UCI::parseGo(const std::vector<std::string> &tokens) {
 
 
 void UCI::sendInfo(int depth, int eval, const Move &best, double time) {
+    int nodesSearched = Metric<NODES_SEARCHED>::get() + Metric<Q_NODES_SEARCHED>::get() - Metric<LEAF_NODES_SEARCHED>::get();
     std::cout << "info ";
     std::cout << "depth " << depth << " ";
     std::cout << "score cp " << eval << " ";
     std::cout << "pv " << Board::moveToString(best) << " ";
-    std::cout << "nodes " << Metric<NODES_SEARCHED>::get() << " ";
-    std::cout << "nps " <<  (int)(Metric<NODES_SEARCHED>::get() / time) << " ";
+    std::cout << "nodes " << nodesSearched << " ";
+    std::cout << "nps " <<  nodesSearched / time << " ";
     std::cout << "time " << (int)(time * 1000) << " ";
     std::cout << "hashfull " << (int)(1000 * Metric<TT_ENTRIES>::get() / TT_SIZE) << " ";
+    std::cout << "qwidth " << Metric<TT_ENTRIES>::get()  << " ";
     std::cout << std::endl;
 }
 void UCI::sendResult(const Move &bestMove) {
