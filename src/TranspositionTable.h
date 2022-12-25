@@ -27,8 +27,8 @@ class TranspositionTable {
     void store(uint64_t key, T value) {
         entries[key & (N - 1)] = value;
     }
-    void clear(){
-        for(int i = 0; i < N; i++){
+    void clear() {
+        for (int i = 0; i < N; i++) {
             entries[i] = T{};
         }
     }

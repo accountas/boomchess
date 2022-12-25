@@ -72,7 +72,6 @@ std::tuple<BoardArray, PieceArray, PieceCountArray> Board::extractPiecesFromFen(
         if (c == 'q' || c == 'Q') piece.piece = PieceType::QUEEN;
         if (c == 'k' || c == 'K') piece.piece = PieceType::KING;
 
-
         if (std::islower(c)) {
             piece.piece |= PieceType::BLACK_FLAG;
         }

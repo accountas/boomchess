@@ -275,7 +275,7 @@ void MoveGenerator::markKiller(int idx) {
     }
 }
 
-bool MoveGenerator::isGoodCapture(int idx){
+bool MoveGenerator::isGoodCapture(int idx) {
     auto move = moves[curDepth][idx];
     return move.flags & MoveFlags::CAPTURE && captureScore[curDepth][idx] >= 0;
 }

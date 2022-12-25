@@ -12,17 +12,17 @@ template<int ID, typename T = int64_t>
 class Metric {
  public:
     static void inc(T n = 1) {
-        if(USE_METRICS && ID >= 0){
+        if (USE_METRICS && ID >= 0) {
             value += n;
         }
     }
     static void dec(T n = 1) {
-        if(USE_METRICS && ID >= 0){
+        if (USE_METRICS && ID >= 0) {
             value -= n;
         }
     }
     static void set(T n = 1) {
-        if(USE_METRICS && ID >= 0){
+        if (USE_METRICS && ID >= 0) {
             value = n;
         }
     }
@@ -35,6 +35,5 @@ class Metric {
 
 template<int ID, typename T>
 T Metric<ID, T>::value = 0;
-
 
 #endif //BOOMCHESS_SRC_METRICS_H_

@@ -14,8 +14,11 @@ void Search::startSearch(const SearchParams &params) {
         canSearch = true;
         std::thread([&, params]() { rootSearch(params); }).detach();
 
-        if(params.timeLimit > 0){
-            std::thread([&, params]() { std::this_thread::sleep_for (std::chrono::milliseconds (params.timeLimit)); killSearch(); }).detach();
+        if (params.timeLimit > 0) {
+            std::thread([&, params]() {
+                std::this_thread::sleep_for(std::chrono::milliseconds(params.timeLimit));
+                killSearch();
+            }).detach();
         }
     }
 }
@@ -47,12 +50,12 @@ void Search::rootSearch(const SearchParams &params) {
             auto move = generator.getSorted(i, board);
             board.makeMove(move);
 
-            if(!board.isLegal()){
+            if (!board.isLegal()) {
                 board.unmakeMove();
                 continue;
             }
 
-            if(bestMove.flags & MoveFlags::NULL_MOVE){
+            if (bestMove.flags & MoveFlags::NULL_MOVE) {
                 bestMove = generator[i];
             }
 
@@ -67,11 +70,10 @@ void Search::rootSearch(const SearchParams &params) {
                 bestEval = eval;
                 bestMove = move;
             }
-            if(bestEval == EVAL_MAX){
+            if (bestEval == EVAL_MAX) {
                 UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
                 goto end;
             }
-
 
         }
         UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
@@ -87,7 +89,7 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
     if (!canSearch) {
         return 0;
     }
-    if (board.isRepetition()){
+    if (board.isRepetition()) {
         return 0;
     }
 
@@ -206,7 +208,7 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
         ttEntry.bound = EXACT;
     }
 
-    if(tTable.at(hash).zobristKey == 0){
+    if (tTable.at(hash).zobristKey == 0) {
         Metric<TT_ENTRIES>::inc();
     }
     tTable.store(hash, ttEntry);
@@ -215,20 +217,20 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
     return value;
 }
 
-int Search::quiescence(int alpha, int beta){
-    if(!canSearch){
+int Search::quiescence(int alpha, int beta) {
+    if (!canSearch) {
         return 0;
     }
 
     Metric<Q_NODES_SEARCHED>::inc();
 
     //Standing Pat
-    if(!board.isInCheck()){
+    if (!board.isInCheck()) {
         int standPat = evaluator.evaluateRelative(board);
-        if (standPat >= beta){
+        if (standPat >= beta) {
             return standPat;
         }
-        if(alpha < standPat){
+        if (alpha < standPat) {
             alpha = standPat;
         }
     }
@@ -237,16 +239,16 @@ int Search::quiescence(int alpha, int beta){
     generator.generateMoves(board);
 
     int movesChecked = 0;
-    for(int i = 0; i < generator.size(); i++){
+    for (int i = 0; i < generator.size(); i++) {
         auto move = generator.getSorted(i, board);
 
-        if(!board.isInCheck() && !generator.isGoodCapture(i)){
+        if (!board.isInCheck() && !generator.isGoodCapture(i)) {
             break;
         }
 
         board.makeMove(move);
 
-        if(!board.isLegal()){
+        if (!board.isLegal()) {
             board.unmakeMove();
             continue;
         }
@@ -256,11 +258,11 @@ int Search::quiescence(int alpha, int beta){
         int score = -quiescence(-beta, -alpha);
         board.unmakeMove();
 
-        if(score >= beta){
+        if (score >= beta) {
             generator.decreaseDepth();
             return beta;
         }
-        if(score > alpha){
+        if (score > alpha) {
             alpha = score;
         }
     }
