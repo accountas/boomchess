@@ -190,21 +190,19 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
     }
 
     //save move to TT
-    if (tTable.at(hash).depth <= depthLeft) {
-        SearchEntry ttEntry;
-        ttEntry.value = value;
-        ttEntry.bestMove = generator[bestMove];
-        ttEntry.depth = depthLeft;
-        ttEntry.zobristKey = hash;
-        if (value <= alphaStart) {
-            ttEntry.bound = UPPER_BOUND;
-        } else if (value >= beta) {
-            ttEntry.bound = LOWER_BOUND;
-        } else {
-            ttEntry.bound = EXACT;
-        }
-        tTable.store(hash, ttEntry);
+    SearchEntry ttEntry;
+    ttEntry.value = value;
+    ttEntry.bestMove = generator[bestMove];
+    ttEntry.depth = depthLeft;
+    ttEntry.zobristKey = hash;
+    if (value <= alphaStart) {
+        ttEntry.bound = UPPER_BOUND;
+    } else if (value >= beta) {
+        ttEntry.bound = LOWER_BOUND;
+    } else {
+        ttEntry.bound = EXACT;
     }
+    tTable.store(hash, ttEntry);
 
     generator.decreaseDepth();
     return value;
