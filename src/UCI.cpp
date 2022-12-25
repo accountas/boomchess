@@ -80,6 +80,7 @@ void UCI::sendInfo(int depth, int eval, const Move &best, double time) {
     std::cout << "nodes " << Metric<NODES_SEARCHED>::get() << " ";
     std::cout << "nps " <<  (int)(Metric<NODES_SEARCHED>::get() / time) << " ";
     std::cout << "time " << (int)(time * 1000) << " ";
+    std::cout << "hashfull " << (int)(1000 * Metric<TT_ENTRIES>::get() / TT_SIZE) << " ";
     std::cout << std::endl;
 }
 void UCI::sendResult(const Move &bestMove) {

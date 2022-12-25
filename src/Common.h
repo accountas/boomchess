@@ -18,7 +18,8 @@ enum MetricTypes : int {
     NODES_SEARCHED,
     CACHE_HITS,
     PV_HITS,
-    PV_MISSES
+    PV_MISSES,
+    TT_ENTRIES
 };
 
 struct SearchParams {

@@ -9,6 +9,7 @@
 #include "MoveGenerator.h"
 #include "Evaluator.h"
 #include "TranspositionTable.h"
+#include "Metrics.h"
 
 class Search {
  public:
@@ -22,6 +23,7 @@ class Search {
     void killSearch();
 
     void resetCache() {
+        Metric<TT_ENTRIES>::set(0);
         tTable.clear();
     }
 

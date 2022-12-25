@@ -202,6 +202,10 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
     } else {
         ttEntry.bound = EXACT;
     }
+
+    if(tTable.at(hash).zobristKey == 0){
+        Metric<TT_ENTRIES>::inc();
+    }
     tTable.store(hash, ttEntry);
 
     generator.decreaseDepth();
