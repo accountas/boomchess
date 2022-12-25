@@ -16,6 +16,8 @@ const std::string DEFAULT_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w K
 //disable by setting value to negative number
 enum MetricTypes : int {
     NODES_SEARCHED,
+    LEAF_NODES_SEARCHED,
+    Q_NODES_SEARCHED,
     CACHE_HITS,
     PV_HITS,
     PV_MISSES,
