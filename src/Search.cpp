@@ -33,6 +33,8 @@ void Search::rootSearch(const SearchParams &params) {
     Timer timer;
     timer.start();
     Metric<NODES_SEARCHED>::set(0);
+    Metric<Q_NODES_SEARCHED>::set(0);
+    Metric<LEAF_NODES_SEARCHED>::set(0);
 
     generator.setDepth(0);
 
