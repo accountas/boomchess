@@ -5,6 +5,7 @@
 #include "Evaluator.h"
 #include "Common.h"
 #include "EvalParms.h"
+
 Evaluator::Evaluator() {
 
 }
@@ -12,6 +13,7 @@ Evaluator::Evaluator() {
 int Evaluator::evaluateRelative(Board &board) {
     return evaluate(board) * (board.moveColor == WHITE ? 1 : -1);
 }
+
 int Evaluator::evaluate(Board &board) {
     int winState = getWinState(board);
 
@@ -37,33 +39,35 @@ int Evaluator::materialAdvantage(Board &board) {
     return score;
 }
 
-//TODO: make this lazy maybe
 int Evaluator::pieceSquareTable(Board &board) {
-    int score = 0;
+    int totalPstBonus = 0;
+    int totalSafeSquareBonus = 0;
 
-    //white
     for (int piece : PieceTypes) {
-        for (int i = 0; i < board.pieceCounts[WHITE][piece]; i++) {
-            int piecePos = board.pieces[WHITE][piece][i];
-            int file = Board::indexToFile(piecePos);
-            int rank = Board::indexToRank(piecePos);
-            int lookUpIdx = (7 - rank) * 8 + file;
-            score += EvalParams::PieceSquareTables[piece][lookUpIdx];
+        for (int color : {WHITE, BLACK}) {
+            int mul = color == WHITE ? 1 : -1;
+            for (int i = 0; i < board.pieceCounts[color][piece]; i++) {
+                int piecePos = board.pieces[color][piece][i];
+
+                //piece square tables
+                int pstBonus = lookupSquareBonus(piecePos, piece, color);
+                totalPstBonus += pstBonus * mul;
+
+                //safe square bonus
+                if (piece != KING && piece != PAWN) {
+                    int explosionValue = getExplosionScore(board, piecePos) * (-mul);
+                    int pieceValue = EvalParams::PieceWeights[piece];
+
+                    //if this piece can`t be taken without loosing material then give bonus
+                    if (pstBonus > 0 && explosionValue >= pieceValue) {
+                        totalSafeSquareBonus += pstBonus * 100 / EvalParams::SAFE_SQUARE_BONUS * mul;
+                    }
+                }
+            }
         }
     }
 
-    //black
-    for (int piece : PieceTypes) {
-        for (int i = 0; i < board.pieceCounts[BLACK][piece]; i++) {
-            int piecePos = board.pieces[BLACK][piece][i];
-            int file = Board::indexToFile(piecePos);
-            int rank = Board::indexToRank(piecePos);
-            int lookUpIdx = rank * 8 + file;
-            score -= EvalParams::PieceSquareTables[piece][lookUpIdx];
-        }
-    }
-
-    return score;
+    return totalPstBonus + totalSafeSquareBonus;
 }
 
 int Evaluator::getWinState(Board &board) {
@@ -86,6 +90,24 @@ int Evaluator::getWinState(Board &board) {
     } else {
         return WinState::NORMAL;
     }
+}
+
+int Evaluator::lookupSquareBonus(int idx, int piece, int color) {
+    int file = Board::indexToFile(idx);
+    int rank = Board::indexToRank(idx);
+    int lookUpIdx = color == WHITE ? (7 - rank) * 8 + file : rank * 8 + file;
+    return EvalParams::PieceSquareTables[piece][lookUpIdx];
+}
+
+int Evaluator::getExplosionScore(const Board &board, int idx) {
+    int score = 0;
+    for (int direction : explosionDirections) {
+        int victimIdx = idx + direction;
+        if (Board::inBounds(victimIdx) && !board.isEmpty(idx) && board[idx].type() != PAWN) {
+            score += EvalParams::PieceWeights[board[victimIdx].type()] * board[idx].color() == WHITE ? 1 : -1;
+        }
+    }
+    return score;
 }
 
 

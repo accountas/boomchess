@@ -5,9 +5,13 @@
 
 namespace EvalParams {
 
+
     const std::array<int, 7> PieceWeights = {
         0, 100, 150, 150, 300, 600, EVAL_MAX
     };
+
+    //percent
+    const int SAFE_SQUARE_BONUS = 90;
 
     const std::array<std::array<int, 64>, 7> PieceSquareTables = {{
                                                                       {},
