@@ -37,9 +37,9 @@ class Search {
     bool canSearch = false;
 
     void rootSearch(const SearchParams &params);
-    int alphaBeta(int depthLeft, int alpha, int beta, bool isPV);
 
     int quiescence(int alpha, int beta);
+    int alphaBeta(int depthLeft, int alpha, int beta);
 };
 
 #endif //BOOMCHESS_SRC_SEARCH_H_

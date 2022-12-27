@@ -8,9 +8,12 @@ add_executable(BC_touch_bonuses src/main.cpp src/Driver.cpp src/Driver.h src/Boa
 MATH(EXPR stack_size "32 * 1024 * 1024") # 32 Mb
 set(CMAKE_EXE_LINKER_FLAGS "-Wl,--stack,${stack_size}")
 
+MATH(EXPR stack_size "32 * 1024 * 1024") # 32 Mb
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--stack,${stack_size}")
+
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,leak,undefined -g")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,leak,undefined -g -pthread")
 else ()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -static-libstdc++ -static-libgcc -static")
+    set(CMAKE_CXX_FLAGS "-pthread -static-libstdc++ -static-libgcc -static -O3")
 endif ()
 

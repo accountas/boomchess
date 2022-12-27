@@ -18,12 +18,13 @@ class MoveGenerator {
     std::array<int, MAX_DEPTH> n{};
     std::array<int, MAX_DEPTH> nSorted{};
 
-    void generateMoves(const Board &board);
+    void generateMoves(const Board &board, int piece = -1);
 
     int size() {
         return n[curDepth];
     }
     void sortTT(const Move &move);
+
     void increaseDepth() {
         curDepth++;
     }
@@ -37,12 +38,12 @@ class MoveGenerator {
         sortTill(idx, board);
         return (*this)[idx];
     }
-
     Move &operator[](int idx) {
         return moves[curDepth][idx];
     }
-
     void markKiller(int idx);
+    void updateHistory(const Move &move, int depth);
+    void ageHistory();
     bool isGoodCapture(int idx);
 
  private:
@@ -61,8 +62,8 @@ class MoveGenerator {
         moves[curDepth][n[curDepth]++] = Move(from, to, flags);
     }
 
-    std::array<std::array<Move, 2>, MAX_DEPTH> killers;
-
+    std::array<std::array<Move, 2>, MAX_DEPTH> killers{};
+    std::array<std::array<int, 128>, 128> historyTable{};
 };
 
 #endif //BOOMCHESS_SRC_MOVEGENERATOR_H_
