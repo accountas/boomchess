@@ -7,7 +7,7 @@
 #include "EvalParms.h"
 #include <tuple>
 
-void MoveGenerator::generateMoves(const Board &board) {
+void MoveGenerator::generateMoves(const Board &board, int piece) {
     n[curDepth] = 0;
     nSorted[curDepth] = 0;
 
@@ -16,12 +16,24 @@ void MoveGenerator::generateMoves(const Board &board) {
         return;
     }
 
-    generateKnightMoves(board);
-    generateQueenMoves(board);
-    generateBishopMoves(board);
-    generateRookMoves(board);
-    generatePawnMoves(board);
-    generateKingMoves(board);
+    if (piece == -1 || piece == PAWN) {
+        generatePawnMoves(board);
+    }
+    if (piece == -1 || piece == KNIGHT) {
+        generateKnightMoves(board);
+    }
+    if (piece == -1 || piece == BISHOP) {
+        generateBishopMoves(board);
+    }
+    if (piece == -1 || piece == QUEEN) {
+        generateQueenMoves(board);
+    }
+    if (piece == -1 || piece == KING) {
+        generateKingMoves(board);
+    }
+    if (piece == -1 || piece == ROOK) {
+        generateRookMoves(board);
+    }
 }
 
 void MoveGenerator::generatePawnMoves(const Board &board) {
@@ -114,18 +126,12 @@ void MoveGenerator::generateKingMoves(const Board &board) {
 }
 
 void MoveGenerator::generateCastle(const Board &board, int kingSquare, int castleDirection) {
-    bool canCastle = true;
-
-    canCastle &= !board.isAttacked(kingSquare);
-
-    canCastle &= board.isEmpty(kingSquare + castleDirection);
-    canCastle &= !board.isAttacked(kingSquare + castleDirection);
-
-    canCastle &= board.isEmpty(kingSquare + castleDirection * 2);
-    canCastle &= !board.isAttacked(kingSquare + castleDirection * 2);
-
-    if (castleDirection == Direction::LEFT)
-        canCastle &= board.isEmpty(kingSquare + castleDirection * 3);
+    bool canCastle = board.isEmpty(kingSquare + castleDirection)
+        && board.isEmpty(kingSquare + castleDirection * 2)
+        && (castleDirection == Direction::RIGHT || board.isEmpty(kingSquare + castleDirection * 3))
+        && !board.isAttacked(kingSquare)
+        && !board.isAttacked(kingSquare + castleDirection)
+        && !board.isAttacked(kingSquare + castleDirection * 2);
 
     if (canCastle) {
         int flag = castleDirection == Direction::RIGHT ? MoveFlags::CASTLE_RIGHT : MoveFlags::CASTLE_LEFT;
@@ -205,39 +211,64 @@ void MoveGenerator::sortTill(int idx, const Board &board) {
     }
 
     for (int i = nSorted[curDepth]; i <= idx; i++) {
-        //score fields:
-        //0 = capture score
-        //1 = is killer (0, 1)
-        //2 = id
-        std::array<int, 3> bestMoveScore = {0, 0, i};
-        std::array<int, 3> curMoveScore{};
+        // ordering:
+        // 1. winning/equal captures
+        // 2. killers
+        // 3. history
+
+        int64_t bestMoveScore = 0;
+        int bestMove = i;
 
         for (int j = i; j < n[curDepth]; j++) {
             auto move = (*this)[j];
-            curMoveScore = {0, 0, j};
+            int64_t curMoveScore = 0;
+
+            const int killerOffset = (MAX_HISTORY_TABLE_VAL + 1);
+            const int mvvOffset = killerOffset * (KILLER_MOVES_N + 1);
 
             //assign MVV-LVA score, we want score to be > 0 for equal captures and < 0 for loosing captures
             if (move.flags & MoveFlags::CAPTURE) {
-                curMoveScore[0] = captureScore[curDepth][j];
-                if (curMoveScore[0] > 0) curMoveScore[0]++;
+                int score = captureScore[curDepth][j];
+                if (score >= 0) score++;
+                curMoveScore += mvvOffset * score;
             }
+
+            //  treat promotions as winning captures for ordering
+            if (move.flags & MoveFlags::PROMOTION_SUBMASK) {
+                if (move.flags & MoveFlags::QUEEN_PROMOTION)
+                    curMoveScore += mvvOffset * (EvalParams::PieceWeights[QUEEN] - EvalParams::PieceWeights[PAWN]);
+                else if (move.flags & MoveFlags::ROOK_PROMOTION)
+                    curMoveScore += mvvOffset * (EvalParams::PieceWeights[ROOK] - EvalParams::PieceWeights[PAWN]);
+                else if (move.flags & MoveFlags::BISHOP_PROMOTION)
+                    curMoveScore += mvvOffset * (EvalParams::PieceWeights[BISHOP] - EvalParams::PieceWeights[PAWN]);
+                else if (move.flags & MoveFlags::KNIGHT_PROMOTION)
+                    curMoveScore += mvvOffset * (EvalParams::PieceWeights[KNIGHT] - EvalParams::PieceWeights[PAWN]);
+            }
+
 
             //assign killer heuristic score
             if (!(move.flags & MoveFlags::CAPTURE)) {
+                int killerId = KILLER_MOVES_N;
                 for (const Move &killer : killers[curDepth]) {
                     if (killer.same(move)) {
-                        curMoveScore[1] = 1;
+                        curMoveScore += killerOffset * killerId;
                         break;
                     }
+                    killerId--;
                 }
             }
 
-            bestMoveScore = max(bestMoveScore, curMoveScore);
+            //assign history score
+            curMoveScore += historyTable[move.from][move.to];
+
+            if (curMoveScore > bestMoveScore) {
+                bestMove = j;
+                bestMoveScore = curMoveScore;
+            }
         }
 
-        int bestIdx = bestMoveScore.back();
-        std::swap(moves[curDepth][i], moves[curDepth][bestIdx]);
-        std::swap(captureScore[curDepth][i], captureScore[curDepth][bestIdx]);
+        std::swap(moves[curDepth][i], moves[curDepth][bestMove]);
+        std::swap(captureScore[curDepth][i], captureScore[curDepth][bestMove]);
     }
 
     nSorted[curDepth] = idx + 1;
@@ -281,4 +312,19 @@ bool MoveGenerator::isGoodCapture(int idx) {
     auto move = moves[curDepth][idx];
     return move.flags & MoveFlags::CAPTURE && captureScore[curDepth][idx] >= 0;
 }
+
+void MoveGenerator::updateHistory(const Move &move, int depth) {
+    historyTable[move.from][move.to] += depth * depth;
+    if (historyTable[move.from][move.to] > MAX_HISTORY_TABLE_VAL)
+        ageHistory();
+}
+
+void MoveGenerator::ageHistory() {
+    for (auto &i : historyTable) {
+        for (auto &j : i) {
+            j >>= 1;
+        }
+    }
+}
+
 
