@@ -67,25 +67,40 @@ int Evaluator::pieceSquareTable(Board &board) {
 }
 
 int Evaluator::getWinState(Board &board) {
-    if (board.isKingCaptured()) return WinState::LOST;
+    if (board.isKingCaptured())
+        return WinState::LOST;
+
+    if (board.numHalfMoves >= 100) {
+        return WinState::TIE;
+    }
 
     bool hasLegalMoves = false;
-    generator.generateMoves(board);
-    for (int i = 0; i < generator.size() && !hasLegalMoves; i++) {
-        board.makeMove(generator[i]);
-        hasLegalMoves |= board.isLegal();
-        board.unmakeMove();
-    }
+
+    auto checkMoves = [&](int piece) {
+        if(!hasLegalMoves){
+            generator.generateMoves(board, piece);
+            for (int i = 0; i < generator.size() && !hasLegalMoves; i++) {
+                board.makeMove(generator[i]);
+                hasLegalMoves |= board.isLegal();
+                board.unmakeMove();
+            }
+        }
+
+    };
+
+    //do this in parts to exit quicker
+    checkMoves(KING);
+    checkMoves(PAWN);
+    checkMoves(KNIGHT);
+    checkMoves(BISHOP);
+    checkMoves(ROOK);
+    checkMoves(QUEEN);
 
     if (!hasLegalMoves) {
         return board.isInCheck() ? WinState::LOST : WinState::TIE;
     }
 
-    if (board.numHalfMoves >= 100) {
-        return WinState::TIE;
-    } else {
-        return WinState::NORMAL;
-    }
+    return WinState::NORMAL;
 }
 
 

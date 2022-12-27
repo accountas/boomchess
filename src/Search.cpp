@@ -42,6 +42,7 @@ void Search::rootSearch(const SearchParams &params) {
     generator.setDepth(0);
 
     for (int currentDepth = 0; currentDepth < params.depthLimit; currentDepth++) {
+        generator.ageHistory();
         generator.generateMoves(board);
         if (currentDepth > 0) {
             generator.sortTT(bestMove);
@@ -59,7 +60,7 @@ void Search::rootSearch(const SearchParams &params) {
                 bestMove = generator[i];
             }
 
-            int eval = -alphaBeta(currentDepth, -1e9, 1e9, false);
+            int eval = -alphaBeta(currentDepth, -1e9, 1e9);
             board.unmakeMove();
 
             if (!canSearch) {
@@ -85,7 +86,7 @@ void Search::rootSearch(const SearchParams &params) {
     UCI::sendResult(bestMove);
 }
 
-int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
+int Search::alphaBeta(int depthLeft, int alpha, int beta) {
     if (!canSearch) {
         return 0;
     }
@@ -125,15 +126,20 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
         return quiescence(alpha, beta);
     }
 
+    //some helpers
+
+    bool isPV = beta - alpha != 1;
+    bool inCheck = board.isInCheck();
+
     //null move heuristic
-    if (!board.isInCheck()
+    if (!inCheck
         && !board.isKingCaptured()
         && !board.madeNullMove
         && depthLeft > NULL_MOVE_R
         && !isPV) {
         board.makeMove(Move(1, 1, MoveFlags::NULL_MOVE));
         board.madeNullMove = true;
-        int nullEval = -alphaBeta(depthLeft - NULL_MOVE_R - 1, -beta, -beta + 1, false);
+        int nullEval = -alphaBeta(depthLeft - NULL_MOVE_R - 1, -beta, -beta + 1);
         board.unmakeMove();
         board.madeNullMove = false;
         if (nullEval >= beta) {
@@ -156,7 +162,8 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
     int bestMove = 0;
     int value = EVAL_MIN;
     for (int i = 0; i < generator.size(); i++) {
-        board.makeMove(generator.getSorted(i, board));
+        auto move = generator.getSorted(i, board);
+        board.makeMove(move);
 
         if (!board.isLegal()) {
             board.unmakeMove();
@@ -166,11 +173,11 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
         movesChecked++;
         int eval;
         if (i == 0) {
-            eval = -alphaBeta(depthLeft - 1, -beta, -alpha, true);
+            eval = -alphaBeta(depthLeft - 1, -beta, -alpha);
         } else {
-            eval = -alphaBeta(depthLeft - 1, -alpha - 1, -alpha, false);
+            eval = -alphaBeta(depthLeft - 1, -alpha - 1, -alpha);
             if (alpha < eval && eval < beta) {
-                eval = -alphaBeta(depthLeft - 1, -beta, -alpha, false);
+                eval = -alphaBeta(depthLeft - 1, -beta, -alpha);
             }
         }
         board.unmakeMove();
@@ -179,10 +186,12 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta, bool isPV) {
             bestMove = i;
             value = eval;
             if (eval > alpha) {
+                generator.updateHistory(move, depthLeft);
                 alpha = value;
             }
         }
         if (alpha >= beta) {
+            generator.updateHistory(move, depthLeft);
             generator.markKiller(i);
             break;
         }

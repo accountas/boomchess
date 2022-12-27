@@ -11,6 +11,7 @@ const int EVAL_MIN = -EVAL_MAX;
 const int TT_SIZE = 1 << 23;
 const int KILLER_MOVES_N = 2;
 const int NULL_MOVE_R = 2;
+const int MAX_HISTORY_TABLE_VAL = 1500;
 const std::string DEFAULT_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 //disable by setting value to negative number

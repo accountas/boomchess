@@ -54,6 +54,8 @@ void Driver::uciMode() {
         getline(std::cin, input);
         auto tokens = tokenizeString(input, ' ');
 
+        if (tokens.empty()) continue;
+
         if (tokens[0] == "isready") {
             std::cout << "readyok" << std::endl;
         } else if (tokens[0] == "ucinewgame") {
@@ -69,6 +71,8 @@ void Driver::uciMode() {
         } else if (tokens[0] == "quit") {
             search.killSearch();
             break;
+        } else if (tokens[0] == "setoption") {
+            continue;
         } else {
             std::cout << "Unknown Input: " << input << std::endl;
         }
