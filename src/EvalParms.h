@@ -11,7 +11,8 @@ namespace EvalParams {
     };
 
     //percent
-    const int SAFE_SQUARE_BONUS = 90;
+    const int SAFE_SQUARE_BONUS = 10;
+    const int UNSAFE_SQUARE_PENALTY = 10;
 
     const std::array<std::array<int, 64>, 7> PieceSquareTables = {{
                                                                       {},

@@ -42,6 +42,7 @@ int Evaluator::materialAdvantage(Board &board) {
 int Evaluator::pieceSquareTable(Board &board) {
     int totalPstBonus = 0;
     int totalSafeSquareBonus = 0;
+    int unsafeSquarePenalty = 0;
 
     for (int piece : PieceTypes) {
         for (int color : {WHITE, BLACK}) {
@@ -55,19 +56,24 @@ int Evaluator::pieceSquareTable(Board &board) {
 
                 //safe square bonus
                 if (piece != KING && piece != PAWN) {
-                    int explosionValue = getExplosionScore(board, piecePos) * (-mul);
+                    int explosionValue = getExplosionScore(board, piecePos) * mul;
                     int pieceValue = EvalParams::PieceWeights[piece];
 
                     //if this piece can`t be taken without loosing material then give bonus
                     if (pstBonus > 0 && explosionValue >= pieceValue) {
-                        totalSafeSquareBonus += pstBonus * 100 / EvalParams::SAFE_SQUARE_BONUS * mul;
+                        totalSafeSquareBonus += (pstBonus * EvalParams::SAFE_SQUARE_BONUS  / 100) * mul;
+                    }
+
+                    //give penalty if too many of your pieces touch
+                    if(explosionValue < 0){
+                        unsafeSquarePenalty += ((explosionValue) * EvalParams::UNSAFE_SQUARE_PENALTY / 100) * mul;
                     }
                 }
             }
         }
     }
 
-    return totalPstBonus + totalSafeSquareBonus;
+    return totalPstBonus + totalSafeSquareBonus + unsafeSquarePenalty;
 }
 
 int Evaluator::getWinState(Board &board) {
@@ -118,8 +124,8 @@ int Evaluator::getExplosionScore(const Board &board, int idx) {
     int score = 0;
     for (int direction : explosionDirections) {
         int victimIdx = idx + direction;
-        if (Board::inBounds(victimIdx) && !board.isEmpty(idx) && board[idx].type() != PAWN) {
-            score += EvalParams::PieceWeights[board[victimIdx].type()] * board[idx].color() == WHITE ? 1 : -1;
+        if (Board::inBounds(victimIdx) && !board.isEmpty(victimIdx) && board[victimIdx].type() != PAWN && board[victimIdx].type() != KING) {
+            score += EvalParams::PieceWeights[board[victimIdx].type()] * (board[victimIdx].color() == WHITE ? -1 : 1);
         }
     }
     return score;
