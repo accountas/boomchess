@@ -328,5 +328,13 @@ void MoveGenerator::ageHistory() {
         }
     }
 }
+void MoveGenerator::clearHistory() {
+    for (auto &i : historyTable) {
+        for (auto &j : i) {
+            j = 0;
+        }
+    }
+}
+
 
 

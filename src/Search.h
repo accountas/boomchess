@@ -25,6 +25,7 @@ class Search {
     void resetCache() {
         Metric<TT_ENTRIES>::set(0);
         tTable.clear();
+        generator.clearHistory();
     }
 
  private:

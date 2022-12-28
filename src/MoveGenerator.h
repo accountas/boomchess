@@ -46,6 +46,7 @@ class MoveGenerator {
     }
     void markKiller(int idx);
     void updateHistory(const Move &move, int depth);
+    void clearHistory();
     void ageHistory();
     bool isGoodCapture(int idx);
 
