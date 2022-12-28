@@ -9,6 +9,8 @@ namespace EvalParams {
         0, 100, 150, 150, 300, 600, EVAL_MAX
     };
 
+    const int MOBILITY_WEIGHT = 8;
+
     const std::array<std::array<int, 64>, 7> PieceSquareTables = {{
                                                                       {},
                                                                       //pawn

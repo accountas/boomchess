@@ -13,6 +13,8 @@ int Evaluator::evaluateRelative(Board &board) {
     return evaluate(board) * (board.moveColor == WHITE ? 1 : -1);
 }
 int Evaluator::evaluate(Board &board) {
+    generator.generateMoves(board);
+
     int winState = getWinState(board);
 
     if (winState == WinState::LOST) {
@@ -25,8 +27,28 @@ int Evaluator::evaluate(Board &board) {
     int score = 0;
     score += materialAdvantage(board);
     score += pieceSquareTable(board);
+    score += mobilityBonus(board);
 
     return score;
+}
+
+int Evaluator::mobilityBonus(Board &board){
+    int currentPlayerMoves = generator.size();
+
+    board.makeMove(Move(0, 0, MoveFlags::NULL_MOVE));
+    generator.generateMoves(board);
+    board.unmakeMove();
+
+    int otherPlayerMoves = generator.size();
+
+    int delta;
+    if(board.moveColor == WHITE){
+        delta = currentPlayerMoves - otherPlayerMoves;
+    } else {
+        delta = otherPlayerMoves - currentPlayerMoves;
+    }
+
+    return delta * EvalParams::MOBILITY_WEIGHT;
 }
 
 int Evaluator::materialAdvantage(Board &board) {
@@ -75,26 +97,11 @@ int Evaluator::getWinState(Board &board) {
     }
 
     bool hasLegalMoves = false;
-
-    auto checkMoves = [&](int piece) {
-        if(!hasLegalMoves){
-            generator.generateMoves(board, piece);
-            for (int i = 0; i < generator.size() && !hasLegalMoves; i++) {
-                board.makeMove(generator[i]);
-                hasLegalMoves |= board.isLegal();
-                board.unmakeMove();
-            }
-        }
-
-    };
-
-    //do this in parts to exit quicker
-    checkMoves(KING);
-    checkMoves(PAWN);
-    checkMoves(KNIGHT);
-    checkMoves(BISHOP);
-    checkMoves(ROOK);
-    checkMoves(QUEEN);
+    for (int i = 0; i < generator.size() && !hasLegalMoves; i++) {
+        board.makeMove(generator[i]);
+        hasLegalMoves |= board.isLegal();
+        board.unmakeMove();
+    }
 
     if (!hasLegalMoves) {
         return board.isInCheck() ? WinState::LOST : WinState::TIE;

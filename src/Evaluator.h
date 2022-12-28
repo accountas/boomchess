@@ -15,11 +15,12 @@ class Evaluator {
 
  private:
     std::array<int, 10> pieceWeights{};
-    MoveGenerator generator{};
+    MoveGenerator generator{true};
 
     int getWinState(Board &board);
     int materialAdvantage(Board &board);
     int pieceSquareTable(Board &board);;
+    int mobilityBonus(Board &board);
 };
 
 #endif //BOOMCHESS_SRC_EVALUATOR_H_
