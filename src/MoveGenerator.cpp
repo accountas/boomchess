@@ -115,12 +115,12 @@ void MoveGenerator::generateKingMoves(const Board &board) {
     }
 
     //castling king side
-    if (board.castlingRights[board.moveColor] & CastlingRight::KING_SIDE) {
+    if (!fast && board.castlingRights[board.moveColor] & CastlingRight::KING_SIDE) {
         generateCastle(board, square, Direction::RIGHT);
     }
 
     //castling queen side
-    if (board.castlingRights[board.moveColor] & CastlingRight::QUEEN_SIDE) {
+    if (!fast && board.castlingRights[board.moveColor] & CastlingRight::QUEEN_SIDE) {
         generateCastle(board, square, Direction::LEFT);
     }
 }
@@ -238,9 +238,9 @@ void MoveGenerator::sortTill(int idx, const Board &board) {
                 if (move.flags & MoveFlags::QUEEN_PROMOTION)
                     curMoveScore += mvvOffset * (EvalParams::PieceWeights[QUEEN] - EvalParams::PieceWeights[PAWN]);
                 else if (move.flags & MoveFlags::ROOK_PROMOTION)
-                    curMoveScore += mvvOffset * (EvalParams::PieceWeights[ROOK] - EvalParams::PieceWeights[PAWN]);
+                    curMoveScore += mvvOffset * -10000;
                 else if (move.flags & MoveFlags::BISHOP_PROMOTION)
-                    curMoveScore += mvvOffset * (EvalParams::PieceWeights[BISHOP] - EvalParams::PieceWeights[PAWN]);
+                    curMoveScore += mvvOffset * -20000;
                 else if (move.flags & MoveFlags::KNIGHT_PROMOTION)
                     curMoveScore += mvvOffset * (EvalParams::PieceWeights[KNIGHT] - EvalParams::PieceWeights[PAWN]);
             }
@@ -275,6 +275,8 @@ void MoveGenerator::sortTill(int idx, const Board &board) {
 }
 
 void MoveGenerator::calculateLatestCaptureScore(const Board &board) {
+    if (fast) return;
+
     auto move = moves[curDepth][size() - 1];
     int score = -EvalParams::PieceWeights[board[move.from].type()];
     for (int direction : explosionDirections) {
