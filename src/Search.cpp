@@ -81,6 +81,10 @@ void Search::rootSearch(const SearchParams &params) {
     }
 
     end:
+
+    //if finnish earlier than move time limit, wait till clock stops
+    while(params.timeLimit > 0 && canSearch){}
+
     board = boardStart;
     canSearch = false;
     UCI::sendResult(bestMove);
