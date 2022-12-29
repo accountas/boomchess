@@ -21,6 +21,7 @@ class Evaluator {
     int materialAdvantage(Board &board);
     int pieceSquareTable(Board &board);;
     int mobilityBonus(Board &board);
+    int lookupSquareBonus(int idx, int piece, int color);
 };
 
 #endif //BOOMCHESS_SRC_EVALUATOR_H_

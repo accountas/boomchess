@@ -11,10 +11,14 @@ namespace EvalParams {
 
     const int MOBILITY_WEIGHT = 8;
 
+    const std::array<int, 8> PASSED_PAWN_BONUS = {
+        0, -8, -14, -7, 10, 30, 43, 0
+    };
+
     const std::array<std::array<int, 64>, 7> PieceSquareTables =
         {{
              {},
-             //pawn`
+             //pawn
              {
                  0, 0, 0, 0, 0, 0, 0, 0,
                  78, 83, 86, 73, 102, 82, 85, 90,

@@ -28,11 +28,10 @@ int Evaluator::evaluate(Board &board) {
     score += materialAdvantage(board);
     score += pieceSquareTable(board);
     score += mobilityBonus(board);
-
     return score;
 }
 
-int Evaluator::mobilityBonus(Board &board){
+int Evaluator::mobilityBonus(Board &board) {
     int currentPlayerMoves = generator.size();
 
     board.makeMove(Move(0, 0, MoveFlags::NULL_MOVE));
@@ -42,7 +41,7 @@ int Evaluator::mobilityBonus(Board &board){
     int otherPlayerMoves = generator.size();
 
     int delta;
-    if(board.moveColor == WHITE){
+    if (board.moveColor == WHITE) {
         delta = currentPlayerMoves - otherPlayerMoves;
     } else {
         delta = otherPlayerMoves - currentPlayerMoves;
@@ -59,33 +58,58 @@ int Evaluator::materialAdvantage(Board &board) {
     return score;
 }
 
-//TODO: make this lazy maybe
 int Evaluator::pieceSquareTable(Board &board) {
-    int score = 0;
+    int totalPstBonus = 0;
+    int passedPawnBonus = 0;
+    short pawnRanks[2][10] = {};
 
-    //white
     for (int piece : PieceTypes) {
-        for (int i = 0; i < board.pieceCounts[WHITE][piece]; i++) {
-            int piecePos = board.pieces[WHITE][piece][i];
-            int file = Board::indexToFile(piecePos);
-            int rank = Board::indexToRank(piecePos);
-            int lookUpIdx = (7 - rank) * 8 + file;
-            score += EvalParams::PieceSquareTables[piece][lookUpIdx];
+        for (int color : {WHITE, BLACK}) {
+            int mul = color == WHITE ? 1 : -1;
+            for (int i = 0; i < board.pieceCounts[color][piece]; i++) {
+                int piecePos = board.pieces[color][piece][i];
+
+                //piece square tables
+                int pstBonus = lookupSquareBonus(piecePos, piece, color);
+                totalPstBonus += pstBonus * mul;
+
+                //update pawn table
+                if (piece == PAWN) {
+                    pawnRanks[color][Board::indexToFile(piecePos) + 1] = (short) (Board::indexToRank(piecePos) + 1);
+                }
+            }
         }
     }
 
-    //black
-    for (int piece : PieceTypes) {
-        for (int i = 0; i < board.pieceCounts[BLACK][piece]; i++) {
-            int piecePos = board.pieces[BLACK][piece][i];
-            int file = Board::indexToFile(piecePos);
-            int rank = Board::indexToRank(piecePos);
-            int lookUpIdx = rank * 8 + file;
-            score -= EvalParams::PieceSquareTables[piece][lookUpIdx];
+    //calculate passed pawn bonuses
+    for (int i = 1; i <= 8; i++) {
+        bool whiteExists = pawnRanks[WHITE][i] != 0;
+        bool blackExists = pawnRanks[BLACK][i] != 0;
+
+        if ((whiteExists ^ blackExists) == false) {
+            continue;
+        }
+
+        int color = whiteExists ? WHITE : BLACK;
+        int mul = whiteExists ? 1 : -1;
+        int rank = pawnRanks[color][i] * mul;
+        int leftRank = pawnRanks[color ^ 1][i - 1] * mul;
+        int rightRank = pawnRanks[color ^ 1][i + 1] * mul;
+        int relativeRank = color == WHITE ? rank * mul : 9 - rank * mul;
+
+        if ((leftRank == 0 || leftRank <= rank) && (rightRank == 0 || rightRank <= rank)) {
+            passedPawnBonus += EvalParams::PASSED_PAWN_BONUS[relativeRank - 1];
         }
     }
 
-    return score;
+    return totalPstBonus + passedPawnBonus;
+}
+
+int Evaluator::lookupSquareBonus(int idx, int piece, int color) {
+    int file = Board::indexToFile(idx);
+    int rank = Board::indexToRank(idx);
+    int lookUpIdx = color == WHITE ? (7 - rank) * 8 + file : rank * 8 + file;
+    return EvalParams::PieceSquareTables[piece][lookUpIdx];
 }
 
 int Evaluator::getWinState(Board &board) {
