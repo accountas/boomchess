@@ -77,21 +77,21 @@ int Evaluator::pieceSquareTable(Board &board) {
                 int pstBonus = lookupSquareBonus(piecePos, piece, color);
                 totalPstBonus += pstBonus * mul;
 
-                //safe square bonus
-                if (piece != KING && piece != PAWN) {
-                    int explosionValue = getExplosionScore(board, piecePos) * mul;
-                    int pieceValue = EvalParams::PieceWeights[piece];
-
-                    //if this piece can`t be taken without loosing material then give bonus
-                    if (pstBonus > 0 && explosionValue >= pieceValue) {
-                        totalSafeSquareBonus += (pstBonus * EvalParams::SAFE_SQUARE_BONUS / 100) * mul;
-                    }
-
-                    //give penalty if too many of your pieces touch
-                    if (explosionValue < 0) {
-                        unsafeSquarePenalty += ((explosionValue) * EvalParams::UNSAFE_SQUARE_PENALTY / 100) * mul;
-                    }
-                }
+//                //safe square bonus
+//                if (piece != KING && piece != PAWN) {
+//                    int explosionValue = getExplosionScore(board, piecePos) * mul;
+//                    int pieceValue = EvalParams::PieceWeights[piece];
+//
+//                    //if this piece can`t be taken without loosing material then give bonus
+//                    if (explosionValue >= pieceValue) {
+//                        totalSafeSquareBonus += (abs(pstBonus) * EvalParams::SAFE_SQUARE_BONUS / 100) * mul;
+//                    }
+//
+//                    //give penalty if too many of your pieces touch
+//                    if (explosionValue < 0) {
+//                        unsafeSquarePenalty += (-abs(pstBonus) * EvalParams::UNSAFE_SQUARE_PENALTY / 100) * mul;
+//                    }
+//                }
 
                 //update pawn table
                 if (piece == PAWN) {
@@ -158,7 +158,7 @@ int Evaluator::getExplosionScore(const Board &board, int idx) {
     int score = 0;
     for (int direction : explosionDirections) {
         int victimIdx = idx + direction;
-        if (Board::inBounds(victimIdx) && !board.isEmpty(victimIdx) && board[victimIdx].type() != PAWN && board[victimIdx].type() != KING) {
+        if (Board::inBounds(victimIdx) && !board.isEmpty(victimIdx) && board[victimIdx].type() != PAWN) {
             score += EvalParams::PieceWeights[board[victimIdx].type()] * (board[victimIdx].color() == WHITE ? -1 : 1);
         }
     }

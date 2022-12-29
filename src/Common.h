@@ -143,14 +143,16 @@ const std::array<int, 4> diagonalDirections = {
 };
 
 const std::array<int, 8> allDirections = {
-    Direction::UP,
+    Direction::DOWN + Direction::LEFT,
     Direction::DOWN,
+    Direction::DOWN + Direction::RIGHT,
+
     Direction::RIGHT,
     Direction::LEFT,
-    Direction::UP + Direction::RIGHT,
+
     Direction::UP + Direction::LEFT,
-    Direction::DOWN + Direction::RIGHT,
-    Direction::DOWN + Direction::LEFT,
+    Direction::UP,
+    Direction::UP + Direction::RIGHT
 };
 
 //might want to play around with it

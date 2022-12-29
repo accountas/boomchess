@@ -11,16 +11,16 @@ namespace EvalParams {
     };
 
     //percent
-    const int SAFE_SQUARE_BONUS = 10;
-    const int UNSAFE_SQUARE_PENALTY = 10;
+    const int SAFE_SQUARE_BONUS = 20;
+    const int UNSAFE_SQUARE_PENALTY = 30;
 
     const int MOBILITY_WEIGHT = 8;
 
-    const std::array<int, 8> PASSED_PAWN_BONUS = {
+    const static std::array<int, 8> PASSED_PAWN_BONUS = {
         0, -8, -14, -7, 10, 30, 43, 0
     };
 
-    const std::array<std::array<int, 64>, 7> PieceSquareTables =
+    const static std::array<std::array<int, 64>, 7> PieceSquareTables =
         {{
              {},
              //pawn
