@@ -1,10 +1,10 @@
 # Boomchess
 
-WIP Atomic chess engine
+WIP Atomic chess engine written in C++
 
-Quickly reaches depth 8, able to reach depth 10 in under few minutes
+Quickly reaches depth of around 10ply in under a minute
 
-Around 1.2M Nodes per second on i7-8750H. (Compiled with -O3)
+Around 1.5M Nodes per second on i7-8750H. (Compiled with -O3)
 
 # Features
 
@@ -20,13 +20,17 @@ Search:
 - Negamax with alpha beta pruning
 - Transposition table
 - Iterative deepening
+- Principal variation search
+- Quiescence search
 - Null move heuristic
 - Move ordering:
     - Best move from transposition table
     - MVV-LVA
     - Killer heuristic
+    - History heuristic
 
 Evaluation:
 
 - Material
 - Piece-square tables
+- Mobility

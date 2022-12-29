@@ -18,6 +18,9 @@ class MoveGenerator {
     std::array<int, MAX_DEPTH> n{};
     std::array<int, MAX_DEPTH> nSorted{};
 
+    explicit MoveGenerator(bool fast) : fast(fast) {}
+    explicit MoveGenerator() = default;
+
     void generateMoves(const Board &board, int piece = -1);
 
     int size() {
@@ -43,10 +46,12 @@ class MoveGenerator {
     }
     void markKiller(int idx);
     void updateHistory(const Move &move, int depth);
+    void clearHistory();
     void ageHistory();
     bool isGoodCapture(int idx);
 
  private:
+    bool fast = false;
     int curDepth = 0;
     void sortTill(int idx, const Board &board);
     void generatePawnMoves(const Board &board);

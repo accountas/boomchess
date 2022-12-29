@@ -15,6 +15,8 @@ int Evaluator::evaluateRelative(Board &board) {
 }
 
 int Evaluator::evaluate(Board &board) {
+    generator.generateMoves(board);
+
     int winState = getWinState(board);
 
     if (winState == WinState::LOST) {
@@ -27,8 +29,27 @@ int Evaluator::evaluate(Board &board) {
     int score = 0;
     score += materialAdvantage(board);
     score += pieceSquareTable(board);
-
+    score += mobilityBonus(board);
     return score;
+}
+
+int Evaluator::mobilityBonus(Board &board) {
+    int currentPlayerMoves = generator.size();
+
+    board.makeMove(Move(0, 0, MoveFlags::NULL_MOVE));
+    generator.generateMoves(board);
+    board.unmakeMove();
+
+    int otherPlayerMoves = generator.size();
+
+    int delta;
+    if (board.moveColor == WHITE) {
+        delta = currentPlayerMoves - otherPlayerMoves;
+    } else {
+        delta = otherPlayerMoves - currentPlayerMoves;
+    }
+
+    return delta * EvalParams::MOBILITY_WEIGHT;
 }
 
 int Evaluator::materialAdvantage(Board &board) {
@@ -43,6 +64,8 @@ int Evaluator::pieceSquareTable(Board &board) {
     int totalPstBonus = 0;
     int totalSafeSquareBonus = 0;
     int unsafeSquarePenalty = 0;
+    int passedPawnBonus = 0;
+    short pawnRanks[2][10] = {};
 
     for (int piece : PieceTypes) {
         for (int color : {WHITE, BLACK}) {
@@ -61,19 +84,45 @@ int Evaluator::pieceSquareTable(Board &board) {
 
                     //if this piece can`t be taken without loosing material then give bonus
                     if (pstBonus > 0 && explosionValue >= pieceValue) {
-                        totalSafeSquareBonus += (pstBonus * EvalParams::SAFE_SQUARE_BONUS  / 100) * mul;
+                        totalSafeSquareBonus += (pstBonus * EvalParams::SAFE_SQUARE_BONUS / 100) * mul;
                     }
 
                     //give penalty if too many of your pieces touch
-                    if(explosionValue < 0){
+                    if (explosionValue < 0) {
                         unsafeSquarePenalty += ((explosionValue) * EvalParams::UNSAFE_SQUARE_PENALTY / 100) * mul;
                     }
+                }
+
+                //update pawn table
+                if (piece == PAWN) {
+                    pawnRanks[color][Board::indexToFile(piecePos) + 1] = (short) (Board::indexToRank(piecePos) + 1);
                 }
             }
         }
     }
 
-    return totalPstBonus + totalSafeSquareBonus + unsafeSquarePenalty;
+    //calculate passed pawn bonuses
+    for (int i = 1; i <= 8; i++) {
+        bool whiteExists = pawnRanks[WHITE][i] != 0;
+        bool blackExists = pawnRanks[BLACK][i] != 0;
+
+        if ((whiteExists ^ blackExists) == false) {
+            continue;
+        }
+
+        int color = whiteExists ? WHITE : BLACK;
+        int mul = whiteExists ? 1 : -1;
+        int rank = pawnRanks[color][i] * mul;
+        int leftRank = pawnRanks[color ^ 1][i - 1] * mul;
+        int rightRank = pawnRanks[color ^ 1][i + 1] * mul;
+        int relativeRank = color == WHITE ? rank * mul : 9 - rank * mul;
+
+        if ((leftRank == 0 || leftRank <= rank) && (rightRank == 0 || rightRank <= rank)) {
+            passedPawnBonus += EvalParams::PASSED_PAWN_BONUS[relativeRank - 1];
+        }
+    }
+
+    return totalPstBonus + totalSafeSquareBonus + unsafeSquarePenalty + passedPawnBonus;
 }
 
 int Evaluator::getWinState(Board &board) {
@@ -85,26 +134,11 @@ int Evaluator::getWinState(Board &board) {
     }
 
     bool hasLegalMoves = false;
-
-    auto checkMoves = [&](int piece) {
-        if(!hasLegalMoves){
-            generator.generateMoves(board, piece);
-            for (int i = 0; i < generator.size() && !hasLegalMoves; i++) {
-                board.makeMove(generator[i]);
-                hasLegalMoves |= board.isLegal();
-                board.unmakeMove();
-            }
-        }
-
-    };
-
-    //do this in parts to exit quicker
-    checkMoves(KING);
-    checkMoves(PAWN);
-    checkMoves(KNIGHT);
-    checkMoves(BISHOP);
-    checkMoves(ROOK);
-    checkMoves(QUEEN);
+    for (int i = 0; i < generator.size() && !hasLegalMoves; i++) {
+        board.makeMove(generator[i]);
+        hasLegalMoves |= board.isLegal();
+        board.unmakeMove();
+    }
 
     if (!hasLegalMoves) {
         return board.isInCheck() ? WinState::LOST : WinState::TIE;
