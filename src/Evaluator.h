@@ -18,10 +18,12 @@ class Evaluator {
     MoveGenerator generator{true};
 
     int getWinState(Board &board);
-    int materialAdvantage(Board &board);
-    int pieceSquareTable(Board &board);;
+    static int materialAdvantage(Board &board);
+    int evalPieces(Board &board);;
     int mobilityBonus(Board &board);
-    int lookupSquareBonus(int idx, int piece, int color);
+    static int lookupSquareBonus(int idx, int piece, int color);
+    int kingSafety(const Board &board);
+    static int kingSafety(Board &board);
 };
 
 #endif //BOOMCHESS_SRC_EVALUATOR_H_

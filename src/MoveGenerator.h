@@ -19,7 +19,7 @@ class MoveGenerator {
     std::array<int, MAX_DEPTH> nSorted{};
 
     explicit MoveGenerator(bool fast) : fast(fast) {}
-    explicit MoveGenerator() = default;
+    MoveGenerator() : fast(false) {}
 
     void generateMoves(const Board &board, int piece = -1);
 

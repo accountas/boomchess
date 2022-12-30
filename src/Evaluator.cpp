@@ -26,8 +26,9 @@ int Evaluator::evaluate(Board &board) {
 
     int score = 0;
     score += materialAdvantage(board);
-    score += pieceSquareTable(board);
+    score += evalPieces(board);
     score += mobilityBonus(board);
+    score += kingSafety(board);
     return score;
 }
 
@@ -58,7 +59,7 @@ int Evaluator::materialAdvantage(Board &board) {
     return score;
 }
 
-int Evaluator::pieceSquareTable(Board &board) {
+int Evaluator::evalPieces(Board &board) {
     int totalPstBonus = 0;
     int passedPawnBonus = 0;
     short pawnRanks[2][10] = {};
@@ -103,6 +104,36 @@ int Evaluator::pieceSquareTable(Board &board) {
     }
 
     return totalPstBonus + passedPawnBonus;
+}
+
+int Evaluator::kingSafety(Board &board) {
+    int attackedSquares[2] = {};
+    int touchingSquares[2] = {};
+
+    for (int i = 0; i <= 1; i++) {
+        int color = board.moveColor;
+        int kingPos = board.pieces[color][KING][0];
+        for (int dir : explosionDirections) {
+            int idx = kingPos + dir;
+            if (Board::inBounds(kingPos + dir)) {
+                bool touchesOwn = !board.isEmpty(idx) && board[idx].color() == color;
+                bool isAttacked = board.isAttacked(idx);
+
+                touchingSquares[color] += touchesOwn;
+                attackedSquares[color] += isAttacked;
+                attackedSquares[color] += isAttacked && touchesOwn;
+            }
+        }
+        if (i == 0) {
+            board.makeMove(Move(0, 0, MoveFlags::NULL_MOVE));
+        } else {
+            board.unmakeMove();
+        }
+    }
+
+    int attackEval = (attackedSquares[BLACK] - attackedSquares[WHITE]) * EvalParams::ATTACKED_KING_SQUARE_BONUS;
+    int touchEval = (touchingSquares[BLACK] - touchingSquares[WHITE]) * EvalParams::KING_TOUCH_PENALTY;
+    return attackEval + touchEval;
 }
 
 int Evaluator::lookupSquareBonus(int idx, int piece, int color) {

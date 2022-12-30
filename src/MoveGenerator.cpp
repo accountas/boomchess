@@ -47,10 +47,10 @@ void MoveGenerator::generatePawnMoves(const Board &board) {
         //forward or promote
         bool forwardClear = board.isEmpty(square + forward);
         if (forwardClear && Board::indexToRank(square) == promotionRank) {
+            addMove(square, square + forward, MoveFlags::QUEEN_PROMOTION | MoveFlags::PAWN_MOVE);
             addMove(square, square + forward, MoveFlags::BISHOP_PROMOTION | MoveFlags::PAWN_MOVE);
             addMove(square, square + forward, MoveFlags::KNIGHT_PROMOTION | MoveFlags::PAWN_MOVE);
             addMove(square, square + forward, MoveFlags::ROOK_PROMOTION | MoveFlags::PAWN_MOVE);
-            addMove(square, square + forward, MoveFlags::QUEEN_PROMOTION | MoveFlags::PAWN_MOVE);
         } else if (forwardClear) {
             addMove(square, square + forward);
         }
