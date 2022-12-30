@@ -34,3 +34,6 @@ Evaluation:
 - Material
 - Piece-square tables
 - Mobility
+- King safety
+  - penalty for pieces attacking kings radius
+  - small penalty for friendly pieces touching king
