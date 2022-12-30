@@ -15,6 +15,10 @@ namespace EvalParams {
     const int ATTACKED_KING_SQUARE_BONUS = 25;
     const int KING_TOUCH_PENALTY = 4;
 
+    const std::array<int, 8> KINGS_TOUCH_FACTOR = {
+        0, 90, 46, 8, 1, 0, 0, 0
+    };
+
     const std::array<int, 8> PASSED_PAWN_BONUS = {
         0, -8, -14, -7, 10, 30, 43, 0
     };

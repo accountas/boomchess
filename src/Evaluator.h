@@ -23,8 +23,8 @@ class Evaluator {
     static int lookupSquareBonus(int idx, int piece, int color);
     int mobilityBonus(Board &board);
     int evalPieces(Board &board);
-    int kingSafety(const Board &board);
     static int kingSafety(Board &board);
+    static int getKingDistanceFactor(const Board &board);
 };
 
 #endif //BOOMCHESS_SRC_EVALUATOR_H_

@@ -31,6 +31,8 @@ int Evaluator::evaluate(Board &board) {
     score += evalPieces(board);
     score += mobilityBonus(board);
     score += kingSafety(board);
+
+    score = score * (100 - getKingDistanceFactor(board)) / 100;
     return score;
 }
 
@@ -151,6 +153,14 @@ int Evaluator::kingSafety(Board &board) {
     return attackEval + touchEval;
 }
 
+int Evaluator::getKingDistanceFactor(const Board &board) {
+    int x1 = Board::indexToFile(board.pieces[WHITE][KING][0]);
+    int y1 = Board::indexToRank(board.pieces[WHITE][KING][0]);
+    int x2 = Board::indexToFile(board.pieces[BLACK][KING][0]);
+    int y2 = Board::indexToRank(board.pieces[BLACK][KING][0]);
+    int distance = std::max(abs(x1 - x2), abs(y1 - y2));
+    return EvalParams::KINGS_TOUCH_FACTOR[distance];
+}
 
 int Evaluator::getWinState(Board &board) {
     if (board.isKingCaptured())
