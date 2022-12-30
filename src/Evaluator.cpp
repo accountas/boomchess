@@ -28,8 +28,9 @@ int Evaluator::evaluate(Board &board) {
 
     int score = 0;
     score += materialAdvantage(board);
-    score += pieceSquareTable(board);
+    score += evalPieces(board);
     score += mobilityBonus(board);
+    score += kingSafety(board);
     return score;
 }
 
@@ -60,7 +61,7 @@ int Evaluator::materialAdvantage(Board &board) {
     return score;
 }
 
-int Evaluator::pieceSquareTable(Board &board) {
+int Evaluator::evalPieces(Board &board) {
     int totalPstBonus = 0;
     int totalSafeSquareBonus = 0;
     int unsafeSquarePenalty = 0;
@@ -77,7 +78,7 @@ int Evaluator::pieceSquareTable(Board &board) {
                 int pstBonus = lookupSquareBonus(piecePos, piece, color);
                 totalPstBonus += pstBonus * mul;
 
-//                //safe square bonus
+                //safe square bonus
 //                if (piece != KING && piece != PAWN) {
 //                    int explosionValue = getExplosionScore(board, piecePos) * mul;
 //                    int pieceValue = EvalParams::PieceWeights[piece];
@@ -85,11 +86,6 @@ int Evaluator::pieceSquareTable(Board &board) {
 //                    //if this piece can`t be taken without loosing material then give bonus
 //                    if (explosionValue >= pieceValue) {
 //                        totalSafeSquareBonus += (abs(pstBonus) * EvalParams::SAFE_SQUARE_BONUS / 100) * mul;
-//                    }
-//
-//                    //give penalty if too many of your pieces touch
-//                    if (explosionValue < 0) {
-//                        unsafeSquarePenalty += (-abs(pstBonus) * EvalParams::UNSAFE_SQUARE_PENALTY / 100) * mul;
 //                    }
 //                }
 
@@ -124,6 +120,37 @@ int Evaluator::pieceSquareTable(Board &board) {
 
     return totalPstBonus + totalSafeSquareBonus + unsafeSquarePenalty + passedPawnBonus;
 }
+
+int Evaluator::kingSafety(Board &board) {
+    int attackedSquares[2] = {};
+    int touchingSquares[2] = {};
+
+    for (int i = 0; i <= 1; i++) {
+        int color = board.moveColor;
+        int kingPos = board.pieces[color][KING][0];
+        for (int dir : explosionDirections) {
+            int idx = kingPos + dir;
+            if (Board::inBounds(kingPos + dir)) {
+                bool touchesOwn = !board.isEmpty(idx) && board[idx].color() == color;
+                bool isAttacked = board.isAttacked(idx);
+
+                touchingSquares[color] += touchesOwn;
+                attackedSquares[color] += isAttacked;
+                attackedSquares[color] += isAttacked && touchesOwn;
+            }
+        }
+        if (i == 0) {
+            board.makeMove(Move(0, 0, MoveFlags::NULL_MOVE));
+        } else {
+            board.unmakeMove();
+        }
+    }
+
+    int attackEval = (attackedSquares[BLACK] - attackedSquares[WHITE]) * EvalParams::ATTACKED_KING_SQUARE_BONUS;
+    int touchEval = (touchingSquares[BLACK] - touchingSquares[WHITE]) * EvalParams::KING_TOUCH_PENALTY;
+    return attackEval + touchEval;
+}
+
 
 int Evaluator::getWinState(Board &board) {
     if (board.isKingCaptured())

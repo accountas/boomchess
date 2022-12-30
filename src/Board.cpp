@@ -321,7 +321,7 @@ bool Board::isAttacked(int idx, bool inverseColor) const {
                 continue;
             }
 
-            if (piece == KNIGHT || castRay(enemyPos, enemyAttackDir) == idx) {
+            if (piece == KNIGHT || castRay(enemyPos, enemyAttackDir, idx) == idx) {
                 return true;
             }
         }
@@ -330,10 +330,10 @@ bool Board::isAttacked(int idx, bool inverseColor) const {
     return false;
 }
 
-int Board::castRay(int startingSquare, int direction) const {
+int Board::castRay(int startingSquare, int direction, int destination) const {
     int currentSquare = startingSquare + direction;
     if (Board::inBounds(currentSquare)) {
-        while (inBounds(currentSquare + direction) && isEmpty(currentSquare)) {
+        while (inBounds(currentSquare + direction) && isEmpty(currentSquare) && currentSquare != destination) {
             currentSquare += direction;
         }
         return currentSquare;

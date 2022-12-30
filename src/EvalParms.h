@@ -4,19 +4,18 @@
 #include "Common.h"
 
 namespace EvalParams {
-
-
     const std::array<int, 7> PieceWeights = {
         0, 100, 150, 150, 300, 600, EVAL_MAX
     };
 
-    //percent
-    const int SAFE_SQUARE_BONUS = 20;
-    const int UNSAFE_SQUARE_PENALTY = 30;
+    const int SAFE_SQUARE_BONUS = 35;
 
     const int MOBILITY_WEIGHT = 8;
 
-    const static std::array<int, 8> PASSED_PAWN_BONUS = {
+    const int ATTACKED_KING_SQUARE_BONUS = 25;
+    const int KING_TOUCH_PENALTY = 4;
+
+    const std::array<int, 8> PASSED_PAWN_BONUS = {
         0, -8, -14, -7, 10, 30, 43, 0
     };
 

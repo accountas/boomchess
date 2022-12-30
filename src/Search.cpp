@@ -83,7 +83,7 @@ void Search::rootSearch(const SearchParams &params) {
     end:
 
     //if finnish earlier than move time limit, wait till clock stops
-    while(params.timeLimit > 0 && canSearch){}
+    while (params.timeLimit > 0 && canSearch) {}
 
     board = boardStart;
     canSearch = false;
@@ -131,16 +131,15 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
     }
 
     //some helpers
-
     bool isPV = beta - alpha != 1;
-    bool inCheck = board.isInCheck();
 
     //null move heuristic
-    if (!inCheck
-        && !board.isKingCaptured()
+    if (!board.isKingCaptured()
         && !board.madeNullMove
         && depthLeft > NULL_MOVE_R
-        && !isPV) {
+        && !isPV
+        && !board.isInCheck()) {
+
         board.makeMove(Move(1, 1, MoveFlags::NULL_MOVE));
         board.madeNullMove = true;
         int nullEval = -alphaBeta(depthLeft - NULL_MOVE_R - 1, -beta, -beta + 1);
@@ -204,7 +203,7 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
     //no legal moves, tie or lost
     if (movesChecked == 0) {
         generator.decreaseDepth();
-        return evaluator.evaluateRelative(board);
+        return board.isInCheck() || board.isKingCaptured() ? EVAL_MIN : 0;
     }
 
     //save move to TT
@@ -236,26 +235,24 @@ int Search::quiescence(int alpha, int beta) {
     }
 
     Metric<Q_NODES_SEARCHED>::inc();
+    bool inCheck = board.isInCheck();
 
     //Standing Pat
-    if (!board.isInCheck()) {
-        int standPat = evaluator.evaluateRelative(board);
-        if (standPat >= beta) {
-            return standPat;
-        }
-        if (alpha < standPat) {
-            alpha = standPat;
-        }
+    int bestScore = evaluator.evaluateRelative(board);
+    if (bestScore > alpha) {
+        alpha = bestScore;
+    }
+    if (bestScore >= beta) {
+        return bestScore;
     }
 
     generator.increaseDepth();
     generator.generateMoves(board);
 
-    int movesChecked = 0;
     for (int i = 0; i < generator.size(); i++) {
         auto move = generator.getSorted(i, board);
 
-        if (!board.isInCheck() && !generator.isGoodCapture(i)) {
+        if (!inCheck && !generator.isGoodCapture(i)) {
             break;
         }
 
@@ -265,8 +262,6 @@ int Search::quiescence(int alpha, int beta) {
             board.unmakeMove();
             continue;
         }
-
-        movesChecked++;
 
         int score = -quiescence(-beta, -alpha);
         board.unmakeMove();
@@ -278,15 +273,13 @@ int Search::quiescence(int alpha, int beta) {
         if (score > alpha) {
             alpha = score;
         }
+        if(score > bestScore){
+            bestScore = score;
+        }
     }
 
     generator.decreaseDepth();
-
-    if (movesChecked == 0) {
-        return evaluator.evaluateRelative(board);
-    }
-
-    return alpha;
+    return bestScore;
 }
 
 

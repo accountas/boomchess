@@ -135,7 +135,7 @@ class Board {
     std::vector<std::pair<int, Piece>> captureHistory;
 
     //move gen util stuff
-    int castRay(int startingSquare, int direction) const;
+    int castRay(int startingSquare, int direction, int destination) const;
     void setEnPassantSquare(int square);
     void setCastlingRights(int color, int rights);
     void flipMoveColor();
