@@ -220,7 +220,7 @@ void Board::movePiece(int from, int to) {
     auto piece = board[from];
     zobristKey.flipPiece(from, piece);
 
-    board[from].piece = PieceType::EMPTY;
+    board[from] = Piece();
     board[to] = piece;
     pieces[piece.color()][piece.type()][piece.pieceListLocation] = to;
 
@@ -263,7 +263,7 @@ void Board::removePiece(int idx, bool capture) {
     }
 
     pieceCounts[piece.color()][piece.type()]--;
-    board[idx].piece = EMPTY;
+    board[idx] = Piece();
 }
 
 void Board::setEnPassantSquare(int square) {

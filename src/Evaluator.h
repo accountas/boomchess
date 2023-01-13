@@ -22,9 +22,11 @@ class Evaluator {
     static int getExplosionScore(const Board &board, int idx);
     static int lookupSquareBonus(int idx, int piece, int color);
     int mobilityBonus(Board &board);
-    int evalPieces(Board &board);
+    int evalPieces(Board &board, int phase);
     static int kingSafety(Board &board);
-    static int getKingDistanceFactor(const Board &board);
+    static int getKingDistanceFactor(const Board &board, int phase);
+    int getPhase(const Board &board);
+    static int interpolateScore(int midgame, int endgame, int phase);
 };
 
 #endif //BOOMCHESS_SRC_EVALUATOR_H_

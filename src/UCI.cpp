@@ -57,7 +57,7 @@ SearchParams UCI::parseGo(const std::vector<std::string> &tokens) {
     auto moveTimeToken = std::find(tokens.begin(), tokens.end(), "movetime");
 
     if (moveTimeToken == tokens.end()) {
-        params.timeLimit = 1000 * 60 * 60;
+        params.timeLimit = 0;
     } else {
         params.timeLimit = std::stoi(*std::next(moveTimeToken));
     }
@@ -72,6 +72,7 @@ SearchParams UCI::parseGo(const std::vector<std::string> &tokens) {
 }
 
 void UCI::sendInfo(int depth, int eval, const Move &best, double time) {
+#ifdef SEND_UCI_INFO
     auto nodesSearched =
         Metric<NODES_SEARCHED>::get() + Metric<Q_NODES_SEARCHED>::get() - Metric<LEAF_NODES_SEARCHED>::get();
     std::cout << "info ";
@@ -84,7 +85,10 @@ void UCI::sendInfo(int depth, int eval, const Move &best, double time) {
     std::cout << "hashfull " << (1000 * Metric<TT_ENTRIES>::get() / TT_SIZE) << " ";
     std::cout << "qwidth " << Metric<TT_ENTRIES>::get() << " ";
     std::cout << std::endl;
+#endif
 }
 void UCI::sendResult(const Move &bestMove) {
+#ifdef SEND_UCI_INFO
     std::cout << "bestmove " << Board::moveToString(bestMove) << std::endl;
+#endif
 }

@@ -13,6 +13,7 @@
 
 void Driver::start() {
     std::string input;
+
     while (true) {
         getline(std::cin, input);
         auto tokens = tokenizeString(input, ' ');
@@ -33,6 +34,14 @@ void Driver::start() {
         }
         if (tokens[0] == "test") {
             perftTest();
+        }
+        if(tokens[0] == "sef"){
+            int depth = std::stoi(tokens[1]);
+            int start = 1;
+            if(tokens.size() > 2){
+                start = std::stoi(tokens[2]);
+            }
+            searchTests(depth, start);
         }
         if (tokens[0] == "q") {
             break;

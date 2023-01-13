@@ -61,6 +61,12 @@ class Board {
     bool isKingCaptured() const {
         return pieceCounts[moveColor][KING] == 0;
     };
+    bool onlyPawns() const {
+        for(int piece : {KNIGHT, BISHOP, ROOK, QUEEN}){
+            if(pieceCounts[moveColor][piece] > 0) return false;
+        }
+        return true;
+    };
     bool isInCheck() const {
         return !isKingCaptured() && !kingsTouch() && isAttacked(pieces[moveColor][KING][0]);
     }

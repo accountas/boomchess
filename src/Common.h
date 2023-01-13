@@ -3,6 +3,29 @@
 
 #include <array>
 
+
+//search features
+//#define USE_TT
+//#define USE_MVV_LVA
+//#define USE_KILLER
+//#define USE_HISTORY
+//#define USE_PVS
+//#define USE_ID
+//#define USE_NULL_MOVE
+
+
+//eval features
+//#define USE_QSEARCH
+//#define USE_MOBILITY
+//#define USE_KING_DISTANCE
+//#define USE_KING_TOUCH_PENALTY
+//#define USE_KING_ATTACK_PENALTY
+//#define USE_SAFE_SQUARE
+//#define USE_PASSED_PAWNS
+
+//other features
+#define SEND_UCI_INFO
+
 //engine params
 const bool USE_METRICS = true;
 const int MAX_DEPTH = 128;
@@ -11,7 +34,7 @@ const int EVAL_MIN = -EVAL_MAX;
 const int TT_SIZE = 1 << 23;
 const int KILLER_MOVES_N = 2;
 const int NULL_MOVE_R = 2;
-const int MAX_HISTORY_TABLE_VAL = 1500;
+const int MAX_HISTORY_TABLE_VAL = 250;
 const std::string DEFAULT_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 //disable by setting value to negative number

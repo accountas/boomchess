@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include "Piece.h"
+#include "EvalParms.h"
 
 char Piece::toChar() const {
     std::unordered_map<int, std::string> pieceString = {
@@ -29,4 +30,10 @@ char Piece::toChar() const {
 Piece::Piece(int piece,
              int pieceListLocation)
     : piece(piece),
-      pieceListLocation(pieceListLocation) {}
+      pieceListLocation(pieceListLocation) {
+    value = 0;
+    int type = piece & (~BLACK_FLAG);
+    if (type != PAWN && type != KING) {
+        value = EvalParams::PieceWeights[type];
+    }
+}

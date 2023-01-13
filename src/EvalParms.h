@@ -4,25 +4,41 @@
 #include "Common.h"
 
 namespace EvalParams {
-    const std::array<int, 7> PieceWeights = {
-        0, 100, 150, 150, 300, 600, EVAL_MAX
-    };
 
-    const int SAFE_SQUARE_BONUS = 35;
+    const std::array<int, 7> PieceWeights =
+        {
+#ifdef PAPER_WEIGHTS
+            0, 100, 90, 0, 220, 850, EVAL_MAX
+#elif defined MIX_WEIGHTS
+            0, 100, 150, 100, 300, 600, EVAL_MAX
+#elif defined STANDARD_WEIGHTS
+            0, 100, 300, 300, 500, 900, EVAL_MAX
+#else
+            0, 100, 150, 150, 300, 600, EVAL_MAX
+#endif
+        };
 
+    const int SAFE_SQUARE_BONUS = 18;
     const int MOBILITY_WEIGHT = 8;
-
     const int ATTACKED_KING_SQUARE_BONUS = 25;
     const int KING_TOUCH_PENALTY = 4;
-
-    const std::array<int, 8> KINGS_TOUCH_FACTOR = {
-        0, 90, 46, 8, 1, 0, 0, 0
+    const std::array<int, 7> PHASE_WEIGHTS = {
+        0, 0, 1, 1, 2, 4, 0
     };
+    const int TOTAL_PHASE =
+        PHASE_WEIGHTS[PAWN] * 16
+            + (PHASE_WEIGHTS[ROOK] + PHASE_WEIGHTS[BISHOP] + PHASE_WEIGHTS[KNIGHT]) * 4
+            + PHASE_WEIGHTS[QUEEN] * 2;
 
+    const std::array<int, 8> KINGS_TOUCH_FACTOR_EG = {
+        0, 95, 85, 45, 30, 4, 0, 0
+    };
+    const std::array<int, 8> KINGS_TOUCH_FACTOR_MG = {
+        0, 95, 75, 0, 0, 0, 0, 0
+    };
     const std::array<int, 8> PASSED_PAWN_BONUS = {
-        0, -8, -14, -7, 10, 30, 43, 0
+        0, 5, 8, 7, 31, 84, 140, 0
     };
-
     const static std::array<std::array<int, 64>, 7> PieceSquareTables =
         {{
              {},
@@ -84,14 +100,14 @@ namespace EvalParams {
              },
              //king
              {
-                 4, 54, 47, -99, -99, 60, 83, -62,
-                 -32, 10, 55, 56, 56, 55, 10, 3,
-                 -62, 12, -57, 44, -67, 28, 37, -31,
-                 -55, 50, 11, -4, -19, 13, 0, -49,
-                 -55, -43, -52, -28, -51, -47, -8, -50,
-                 -47, -42, -43, -79, -64, -32, -29, -32,
-                 -4, 3, -14, -50, -57, -18, 13, 4,
-                 17, 30, -3, -14, 6, -1, 40, 18
+                 -55, -55, -55, -55, -55, -55, -55, -55,
+                 -55, -55, -55, -55, -55, -55, -55, -55,
+                 -55, -55, -55, -55, -55, -55, -55, -55,
+                 -55, -55, -55, -55, -55, -55, -55, -55,
+                 -55, -55, -55, -55, -55, -55, -55, -55,
+                 -55, -55, -55, -55, -55, -55, -55, -55,
+                 -15, -15, -15, -15, -15, -15, -15, -15,
+                 -15,  50,  30, -5,    0,  -5,  50, -15
              },
          }};
 }

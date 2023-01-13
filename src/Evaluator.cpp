@@ -26,13 +26,18 @@ int Evaluator::evaluate(Board &board) {
         return 0;
     }
 
+    int phase = getPhase(board);
     int score = 0;
-    score += materialAdvantage(board);
-    score += evalPieces(board);
-    score += mobilityBonus(board);
-    score += kingSafety(board);
 
-    score = score * (100 - getKingDistanceFactor(board)) / 100;
+    score += materialAdvantage(board);
+    score += evalPieces(board, phase);
+#ifdef USE_MOBILITY
+    score += mobilityBonus(board);
+#endif
+    score += kingSafety(board);
+#ifdef USE_KING_DISTANCE
+    score = score * (100 - getKingDistanceFactor(board, phase)) / 100;
+#endif
     return score;
 }
 
@@ -63,7 +68,7 @@ int Evaluator::materialAdvantage(Board &board) {
     return score;
 }
 
-int Evaluator::evalPieces(Board &board) {
+int Evaluator::evalPieces(Board &board, int phase) {
     int totalPstBonus = 0;
     int totalSafeSquareBonus = 0;
     int unsafeSquarePenalty = 0;
@@ -80,16 +85,24 @@ int Evaluator::evalPieces(Board &board) {
                 int pstBonus = lookupSquareBonus(piecePos, piece, color);
                 totalPstBonus += pstBonus * mul;
 
+#ifdef USE_SAFE_SQUARE
                 //safe square bonus
-//                if (piece != KING && piece != PAWN) {
-//                    int explosionValue = getExplosionScore(board, piecePos) * mul;
-//                    int pieceValue = EvalParams::PieceWeights[piece];
-//
-//                    //if this piece can`t be taken without loosing material then give bonus
-//                    if (explosionValue >= pieceValue) {
-//                        totalSafeSquareBonus += (abs(pstBonus) * EvalParams::SAFE_SQUARE_BONUS / 100) * mul;
-//                    }
-//                }
+                if (piece != KING && piece != PAWN) {
+                    int pieceValue = EvalParams::PieceWeights[piece];
+                    int explosionValue = 0;
+
+                    for (int direction : explosionDirections) {
+                        int victimIdx = piecePos + direction;
+                        if (Board::inBounds(victimIdx)) {
+                            explosionValue += board[victimIdx].value * (board[victimIdx].color() == color ? -1 : 1);
+                        }
+                    }
+
+                    if (explosionValue >= pieceValue && pstBonus > 0) {
+                        totalSafeSquareBonus += (pstBonus) * EvalParams::SAFE_SQUARE_BONUS / 100 * mul;
+                    }
+                }
+#endif
 
                 //update pawn table
                 if (piece == PAWN) {
@@ -99,6 +112,7 @@ int Evaluator::evalPieces(Board &board) {
         }
     }
 
+#ifdef USE_PASSED_PAWNS
     //calculate passed pawn bonuses
     for (int i = 1; i <= 8; i++) {
         bool whiteExists = pawnRanks[WHITE][i] != 0;
@@ -116,9 +130,12 @@ int Evaluator::evalPieces(Board &board) {
         int relativeRank = color == WHITE ? rank * mul : 9 - rank * mul;
 
         if ((leftRank == 0 || leftRank <= rank) && (rightRank == 0 || rightRank <= rank)) {
-            passedPawnBonus += EvalParams::PASSED_PAWN_BONUS[relativeRank - 1];
+            passedPawnBonus += EvalParams::PASSED_PAWN_BONUS[relativeRank - 1] * mul;
         }
     }
+#endif
+
+    unsafeSquarePenalty = interpolateScore(unsafeSquarePenalty * 2, unsafeSquarePenalty / 2, phase);
 
     return totalPstBonus + totalSafeSquareBonus + unsafeSquarePenalty + passedPawnBonus;
 }
@@ -130,6 +147,7 @@ int Evaluator::kingSafety(Board &board) {
     for (int i = 0; i <= 1; i++) {
         int color = board.moveColor;
         int kingPos = board.pieces[color][KING][0];
+
         for (int dir : explosionDirections) {
             int idx = kingPos + dir;
             if (Board::inBounds(kingPos + dir)) {
@@ -141,6 +159,7 @@ int Evaluator::kingSafety(Board &board) {
                 attackedSquares[color] += isAttacked && touchesOwn;
             }
         }
+
         if (i == 0) {
             board.makeMove(Move(0, 0, MoveFlags::NULL_MOVE));
         } else {
@@ -148,18 +167,28 @@ int Evaluator::kingSafety(Board &board) {
         }
     }
 
-    int attackEval = (attackedSquares[BLACK] - attackedSquares[WHITE]) * EvalParams::ATTACKED_KING_SQUARE_BONUS;
-    int touchEval = (touchingSquares[BLACK] - touchingSquares[WHITE]) * EvalParams::KING_TOUCH_PENALTY;
+    int attackEval = 0;
+    int touchEval = 0;
+
+#ifdef USE_KING_ATTACK_PENALTY
+    attackEval = (attackedSquares[BLACK] - attackedSquares[WHITE]) * EvalParams::ATTACKED_KING_SQUARE_BONUS;
+#endif
+#ifdef USE_KING_TOUCH_PENALTY
+    touchEval = (touchingSquares[BLACK] - touchingSquares[WHITE]) * EvalParams::KING_TOUCH_PENALTY;
+#endif
+
     return attackEval + touchEval;
 }
 
-int Evaluator::getKingDistanceFactor(const Board &board) {
+int Evaluator::getKingDistanceFactor(const Board &board, int phase) {
     int x1 = Board::indexToFile(board.pieces[WHITE][KING][0]);
     int y1 = Board::indexToRank(board.pieces[WHITE][KING][0]);
     int x2 = Board::indexToFile(board.pieces[BLACK][KING][0]);
     int y2 = Board::indexToRank(board.pieces[BLACK][KING][0]);
     int distance = std::max(abs(x1 - x2), abs(y1 - y2));
-    return EvalParams::KINGS_TOUCH_FACTOR[distance];
+    int mg = EvalParams::KINGS_TOUCH_FACTOR_MG[distance];
+    int eg = EvalParams::KINGS_TOUCH_FACTOR_EG[distance];
+    return interpolateScore(mg, eg, phase);
 }
 
 int Evaluator::getWinState(Board &board) {
@@ -191,15 +220,17 @@ int Evaluator::lookupSquareBonus(int idx, int piece, int color) {
     return EvalParams::PieceSquareTables[piece][lookUpIdx];
 }
 
-int Evaluator::getExplosionScore(const Board &board, int idx) {
-    int score = 0;
-    for (int direction : explosionDirections) {
-        int victimIdx = idx + direction;
-        if (Board::inBounds(victimIdx) && !board.isEmpty(victimIdx) && board[victimIdx].type() != PAWN) {
-            score += EvalParams::PieceWeights[board[victimIdx].type()] * (board[victimIdx].color() == WHITE ? -1 : 1);
+int Evaluator::getPhase(const Board &board) {
+    int phase = EvalParams::TOTAL_PHASE;
+    for (int color : {WHITE, BLACK}) {
+        for (int piece : PieceTypes) {
+            phase -= EvalParams::PHASE_WEIGHTS[piece] * board.pieceCounts[color][piece];
         }
     }
-    return score;
+    return (phase * 256 + (EvalParams::TOTAL_PHASE / 2)) / EvalParams::TOTAL_PHASE;
 }
 
+int Evaluator::interpolateScore(int midgame, int endgame, int phase) {
+    return ((midgame * (256 - phase)) + (endgame * phase)) / 256;
+}
 

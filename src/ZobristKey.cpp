@@ -8,8 +8,7 @@
 #include "Timer.h"
 
 void ZobristKey::generateNumbers() {
-    std::random_device r;
-    std::default_random_engine e(r());
+    std::default_random_engine e(4230974575);
     std::uniform_int_distribution<uint64_t> uniform_dist(0, UINT64_MAX);
 
     for (int i = 0; i < pieceNumbers.size(); i++) {

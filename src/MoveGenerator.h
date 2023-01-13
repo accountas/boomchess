@@ -45,9 +45,9 @@ class MoveGenerator {
         return moves[curDepth][idx];
     }
     void markKiller(int idx);
-    void updateHistory(const Move &move, int depth);
+    void updateHistory(int sideToMove, const Move &move, int depth);
     void clearHistory();
-    void ageHistory();
+    void ageHistory(int side);
     bool isGoodCapture(int idx);
 
  private:
@@ -68,7 +68,7 @@ class MoveGenerator {
     }
 
     std::array<std::array<Move, 2>, MAX_DEPTH> killers{};
-    std::array<std::array<int, 128>, 128> historyTable{};
+    std::array<std::array<std::array<int, 128>, 128>, 2> historyTable{};
 };
 
 #endif //BOOMCHESS_SRC_MOVEGENERATOR_H_

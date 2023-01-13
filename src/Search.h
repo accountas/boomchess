@@ -20,6 +20,8 @@ class Search {
     }
     void startSearch(const SearchParams &params);
 
+    void rootSearch(const SearchParams &params);
+
     void killSearch();
 
     void resetCache() {
@@ -27,6 +29,8 @@ class Search {
         tTable.clear();
         generator.clearHistory();
     }
+    
+    bool canSearch = false;
 
  private:
     Board board;
@@ -35,9 +39,7 @@ class Search {
 
     TranspositionTable<SearchEntry, TT_SIZE> tTable{};
 
-    bool canSearch = false;
 
-    void rootSearch(const SearchParams &params);
 
     int quiescence(int alpha, int beta);
     int alphaBeta(int depthLeft, int alpha, int beta);

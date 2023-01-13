@@ -226,6 +226,7 @@ void MoveGenerator::sortTill(int idx, const Board &board) {
             const int killerOffset = (MAX_HISTORY_TABLE_VAL + 1);
             const int mvvOffset = killerOffset * (KILLER_MOVES_N + 1);
 
+#ifdef USE_MVV_LVA
             //assign MVV-LVA score, we want score to be > 0 for equal captures and < 0 for loosing captures
             if (move.flags & MoveFlags::CAPTURE) {
                 int score = captureScore[curDepth][j];
@@ -244,8 +245,8 @@ void MoveGenerator::sortTill(int idx, const Board &board) {
                 else if (move.flags & MoveFlags::KNIGHT_PROMOTION)
                     curMoveScore += mvvOffset * (EvalParams::PieceWeights[KNIGHT] - EvalParams::PieceWeights[PAWN]);
             }
-
-
+#endif
+#ifdef USE_KILLER
             //assign killer heuristic score
             if (!(move.flags & MoveFlags::CAPTURE)) {
                 int killerId = KILLER_MOVES_N;
@@ -257,14 +258,16 @@ void MoveGenerator::sortTill(int idx, const Board &board) {
                     killerId--;
                 }
             }
-
+#endif
+#ifdef USE_HISTORY
             //assign history score
-            curMoveScore += historyTable[move.from][move.to];
-
+            curMoveScore += historyTable[board.moveColor][move.from][move.to];
+#endif
             if (curMoveScore > bestMoveScore) {
                 bestMove = j;
                 bestMoveScore = curMoveScore;
             }
+
         }
 
         std::swap(moves[curDepth][i], moves[curDepth][bestMove]);
@@ -302,7 +305,7 @@ void MoveGenerator::sortTT(const Move &move) {
 
 void MoveGenerator::markKiller(int idx) {
     auto move = moves[curDepth][idx];
-    if (!killers[curDepth][0].same(move)) {
+    if (!(move.flags & MoveFlags::CAPTURE) && !killers[curDepth][0].same(move)) {
         for (int i = KILLER_MOVES_N - 1; i > 0; i--) {
             killers[curDepth][i] = killers[curDepth][i - 1];
         }
@@ -315,23 +318,25 @@ bool MoveGenerator::isGoodCapture(int idx) {
     return move.flags & MoveFlags::CAPTURE && captureScore[curDepth][idx] >= 0;
 }
 
-void MoveGenerator::updateHistory(const Move &move, int depth) {
-    historyTable[move.from][move.to] += depth * depth;
-    if (historyTable[move.from][move.to] > MAX_HISTORY_TABLE_VAL)
-        ageHistory();
+void MoveGenerator::updateHistory(int sideToMove, const Move &move, int depth) {
+    historyTable[sideToMove][move.from][move.to] += depth * depth;
+    if (historyTable[sideToMove][move.from][move.to] > MAX_HISTORY_TABLE_VAL)
+        ageHistory(sideToMove);
 }
 
-void MoveGenerator::ageHistory() {
-    for (auto &i : historyTable) {
-        for (auto &j : i) {
-            j >>= 1;
+void MoveGenerator::ageHistory(int side) {
+    for (auto &j : historyTable[side]) {
+        for (auto &k : j) {
+            k >>= 1;
         }
     }
 }
 void MoveGenerator::clearHistory() {
     for (auto &i : historyTable) {
         for (auto &j : i) {
-            j = 0;
+            for (auto &k : j) {
+                k = 0;
+            }
         }
     }
 }

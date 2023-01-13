@@ -5,6 +5,7 @@
 #include <sstream>
 #include <tuple>
 #include "Board.h"
+#include "EvalParms.h"
 
 Board Board::fromFen(const std::string &fen) {
     std::istringstream ss(fen);
@@ -64,25 +65,24 @@ std::tuple<BoardArray, PieceArray, PieceCountArray> Board::extractPiecesFromFen(
             continue;
         }
 
-        Piece piece;
-        if (c == 'p' || c == 'P') piece.piece = PieceType::PAWN;
-        if (c == 'n' || c == 'N') piece.piece = PieceType::KNIGHT;
-        if (c == 'b' || c == 'B') piece.piece = PieceType::BISHOP;
-        if (c == 'r' || c == 'R') piece.piece = PieceType::ROOK;
-        if (c == 'q' || c == 'Q') piece.piece = PieceType::QUEEN;
-        if (c == 'k' || c == 'K') piece.piece = PieceType::KING;
+        int piece;
+        if (c == 'p' || c == 'P') piece = PieceType::PAWN;
+        if (c == 'n' || c == 'N') piece = PieceType::KNIGHT;
+        if (c == 'b' || c == 'B') piece = PieceType::BISHOP;
+        if (c == 'r' || c == 'R') piece = PieceType::ROOK;
+        if (c == 'q' || c == 'Q') piece = PieceType::QUEEN;
+        if (c == 'k' || c == 'K') piece = PieceType::KING;
 
         if (std::islower(c)) {
-            piece.piece |= PieceType::BLACK_FLAG;
+            piece |= PieceType::BLACK_FLAG;
         }
 
         int boardLocation = positionToIndex(curFile, curRank);
-        int color = (bool) (piece.piece & PieceType::BLACK_FLAG);
-        int pieceType = piece.piece & ~PieceType::BLACK_FLAG;
+        int color = (bool) (piece & PieceType::BLACK_FLAG);
+        int pieceType = piece & ~PieceType::BLACK_FLAG;
         int pieceListIndex = pieceCounts[color][pieceType];
 
-        piece.pieceListLocation = pieceListIndex;
-        board[boardLocation] = piece;
+        board[boardLocation] = Piece(piece, pieceListIndex);
         pieces[color][pieceType][pieceListIndex] = boardLocation;
         pieceCounts[color][pieceType]++;
 
