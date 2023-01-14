@@ -20,7 +20,6 @@ class Driver {
     std::vector<std::string> tokenizeString(const std::string &s, char delimiter);
     void uciMode();
     void perftTest();
-    void searchTests(int depth, int start = 1);
 };
 
 #endif //BOOMCHESS_DRIVER_H

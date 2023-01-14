@@ -33,7 +33,7 @@ Piece::Piece(int piece,
       pieceListLocation(pieceListLocation) {
     value = 0;
     int type = piece & (~BLACK_FLAG);
-    if (type != PAWN && type != KING) {
+    if (type != PAWN) {
         value = EvalParams::PieceWeights[type];
     }
 }

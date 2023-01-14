@@ -50,6 +50,7 @@ class MoveGenerator {
     void ageHistory(int side);
     bool isGoodCapture(int idx);
 
+    void clearKillers();
  private:
     bool fast = false;
     int curDepth = 0;

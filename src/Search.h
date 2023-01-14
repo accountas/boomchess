@@ -20,7 +20,7 @@ class Search {
     }
     void startSearch(const SearchParams &params);
 
-    void rootSearch(const SearchParams &params);
+    void rootSearch();
 
     void killSearch();
 
@@ -28,19 +28,27 @@ class Search {
         Metric<TT_ENTRIES>::set(0);
         tTable.clear();
         generator.clearHistory();
+        generator.clearKillers();
     }
-    
-    bool canSearch = false;
+
+    bool canSearch() {
+        if (!searchActive) {
+            return false;
+        }
+        if (searchParams.nodeLimit < Metric<NODES_SEARCHED>::get() - Metric<LEAF_NODES_SEARCHED>::get() + Metric<Q_NODES_SEARCHED>::get()) {
+            return false;
+        }
+        return true;
+    }
+    bool searchActive = false;
 
  private:
     Board board;
     MoveGenerator generator;
     Evaluator evaluator;
+    SearchParams searchParams;
 
     TranspositionTable<SearchEntry, TT_SIZE> tTable{};
-
-
-
     int quiescence(int alpha, int beta);
     int alphaBeta(int depthLeft, int alpha, int beta);
 };

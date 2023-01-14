@@ -10,9 +10,11 @@
 #include "Timer.h"
 
 void Search::startSearch(const SearchParams &params) {
-    if (!canSearch) {
-        canSearch = true;
-        std::thread([&, params]() { rootSearch(params); }).detach();
+    searchParams = params;
+
+    if (!searchActive) {
+        searchActive = true;
+        std::thread([&]() { rootSearch(); }).detach();
 
         if (params.timeLimit > 0) {
             std::thread([&, params]() {
@@ -24,10 +26,10 @@ void Search::startSearch(const SearchParams &params) {
 }
 
 void Search::killSearch() {
-    canSearch = false;
+    searchActive = false;
 }
 
-void Search::rootSearch(const SearchParams &params) {
+void Search::rootSearch() {
     auto boardStart = board;
 
     Move bestMove(0, 0, MoveFlags::NULL_MOVE);
@@ -41,15 +43,14 @@ void Search::rootSearch(const SearchParams &params) {
 
     generator.setDepth(0);
 
-    int depthStart;
 #ifdef USE_ID
-    depthStart = 0;
+    int depthStart = depthStart = 0;
 #else
-    depthStart = params.depthLimit - 1;
+    int depthStart = params.depthLimit - 1;
 #endif
 
     int currentDepth;
-    for (currentDepth = depthStart; currentDepth < params.depthLimit; currentDepth++) {
+    for (currentDepth = depthStart; currentDepth < searchParams.depthLimit; currentDepth++) {
         generator.ageHistory(0);
         generator.ageHistory(1);
         generator.generateMoves(board);
@@ -76,7 +77,7 @@ void Search::rootSearch(const SearchParams &params) {
             int eval = -alphaBeta(currentDepth, -beta, -alpha);
             board.unmakeMove();
 
-            if (!canSearch) {
+            if (!canSearch()) {
                 goto end;
             }
             if (i == 0 || eval > bestEval) {
@@ -96,7 +97,7 @@ void Search::rootSearch(const SearchParams &params) {
 
     end:
     //if finnish earlier than move time limit, wait till clock stops
-    while (params.timeLimit > 0 && canSearch) {
+    while (searchParams.timeLimit > 0 && searchActive) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
@@ -104,12 +105,12 @@ void Search::rootSearch(const SearchParams &params) {
 
 
     board = boardStart;
-    canSearch = false;
+    searchActive = false;
     UCI::sendResult(bestMove);
 }
 
 int Search::alphaBeta(int depthLeft, int alpha, int beta) {
-    if (!canSearch) {
+    if (!canSearch()) {
         return 0;
     }
     if (board.isRepetition()) {
@@ -268,7 +269,7 @@ int Search::quiescence(int alpha, int beta) {
     return evaluator.evaluateRelative(board);
 #endif
 
-    if (!canSearch) {
+    if (!canSearch()) {
         return 0;
     }
 

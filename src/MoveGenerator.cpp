@@ -340,6 +340,13 @@ void MoveGenerator::clearHistory() {
         }
     }
 }
+void MoveGenerator::clearKillers() {
+    for(auto &i : killers){
+        for(auto &j : i){
+            j = Move(); //null
+        }
+    }
+}
 
 
 

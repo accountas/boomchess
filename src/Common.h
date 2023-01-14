@@ -51,6 +51,7 @@ enum MetricTypes : int {
 struct SearchParams {
     int depthLimit;
     int timeLimit;
+    int nodeLimit;
 };
 
 /**

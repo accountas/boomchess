@@ -18,7 +18,7 @@ namespace EvalParams {
 #endif
         };
 
-    const int SAFE_SQUARE_BONUS = 18;
+    const int SAFE_SQUARE_BONUS = 25;
     const int MOBILITY_WEIGHT = 8;
     const int ATTACKED_KING_SQUARE_BONUS = 25;
     const int KING_TOUCH_PENALTY = 4;
@@ -31,10 +31,10 @@ namespace EvalParams {
             + PHASE_WEIGHTS[QUEEN] * 2;
 
     const std::array<int, 8> KINGS_TOUCH_FACTOR_EG = {
-        0, 95, 85, 45, 30, 4, 0, 0
+        0, 60, 25, 5, 0, 0, 0, 0
     };
     const std::array<int, 8> KINGS_TOUCH_FACTOR_MG = {
-        0, 95, 75, 0, 0, 0, 0, 0
+//        0, 10, 5, 1, 0, 0, 0, 0
     };
     const std::array<int, 8> PASSED_PAWN_BONUS = {
         0, 5, 8, 7, 31, 84, 140, 0

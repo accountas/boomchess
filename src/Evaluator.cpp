@@ -98,8 +98,8 @@ int Evaluator::evalPieces(Board &board, int phase) {
                         }
                     }
 
-                    if (explosionValue >= pieceValue && pstBonus > 0) {
-                        totalSafeSquareBonus += (pstBonus) * EvalParams::SAFE_SQUARE_BONUS / 100 * mul;
+                    if (explosionValue >= pieceValue && pstBonus > -20) {
+                        totalSafeSquareBonus += (pstBonus + 20) * EvalParams::SAFE_SQUARE_BONUS / 100 * mul;
                     }
                 }
 #endif
@@ -132,6 +132,8 @@ int Evaluator::evalPieces(Board &board, int phase) {
         if ((leftRank == 0 || leftRank <= rank) && (rightRank == 0 || rightRank <= rank)) {
             passedPawnBonus += EvalParams::PASSED_PAWN_BONUS[relativeRank - 1] * mul;
         }
+
+
     }
 #endif
 
