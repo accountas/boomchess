@@ -35,7 +35,9 @@ class Search {
         if (!searchActive) {
             return false;
         }
-        if (searchParams.nodeLimit < Metric<NODES_SEARCHED>::get() - Metric<LEAF_NODES_SEARCHED>::get() + Metric<Q_NODES_SEARCHED>::get()) {
+        if (searchParams.nodeLimit > 0
+            && searchParams.nodeLimit < Metric<NODES_SEARCHED>::get() - Metric<LEAF_NODES_SEARCHED>::get()
+                + Metric<Q_NODES_SEARCHED>::get()) {
             return false;
         }
         return true;

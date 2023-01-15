@@ -44,7 +44,7 @@ void Search::rootSearch() {
     generator.setDepth(0);
 
 #ifdef USE_ID
-    int depthStart = depthStart = 0;
+    int depthStart = 0;
 #else
     int depthStart = params.depthLimit - 1;
 #endif
@@ -53,7 +53,9 @@ void Search::rootSearch() {
     for (currentDepth = depthStart; currentDepth < searchParams.depthLimit; currentDepth++) {
         generator.ageHistory(0);
         generator.ageHistory(1);
+        generator.clearKillers();
         generator.generateMoves(board);
+
         if (currentDepth > 0) {
             generator.sortTT(bestMove);
         }
@@ -217,7 +219,6 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
             bestMove = i;
             value = eval;
             if (eval > alpha) {
-                generator.updateHistory(0, move, depthLeft);
                 alpha = value;
             }
         }

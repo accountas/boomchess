@@ -55,7 +55,7 @@ SearchParams UCI::parseGo(const std::vector<std::string> &tokens) {
 
     auto depthToken = std::find(tokens.begin(), tokens.end(), "depth");
     auto moveTimeToken = std::find(tokens.begin(), tokens.end(), "movetime");
-Tune     auto nodesToken = std::find(tokens.begin(), tokens.end(), "nodes");
+    auto nodesToken = std::find(tokens.begin(), tokens.end(), "nodes");
 
     if(nodesToken == tokens.end()){
         params.nodeLimit = 0;
