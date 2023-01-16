@@ -4,10 +4,11 @@ WIP Atomic chess engine written in C++
 
 Reached depths of around 10 in under 5s.
 
+Supports UCI
+
 Around 1.1M (1.8M for perft) Nodes per second on i7-8750H. (Compiled with -O3)
 
 # Features
-
 Board:
 
 - 0x88 representation
