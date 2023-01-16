@@ -2,7 +2,7 @@
 
 WIP Atomic chess engine written in C++
 
-Reached depths of around 10 in under 5s.
+Reaches depths of around 10 in under 5s.
 
 Supports UCI
 
