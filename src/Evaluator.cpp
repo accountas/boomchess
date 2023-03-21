@@ -1,7 +1,3 @@
-//
-// Created by marty on 2022-11-17.
-//
-
 #include "Evaluator.h"
 #include "Common.h"
 #include "EvalParms.h"
@@ -31,13 +27,11 @@ int Evaluator::evaluate(Board &board) {
 
     score += materialAdvantage(board);
     score += evalPieces(board, phase);
-#ifdef USE_MOBILITY
     score += mobilityBonus(board);
-#endif
     score += kingSafety(board);
-#ifdef USE_KING_DISTANCE
+
     score = score * (100 - getKingDistanceFactor(board, phase)) / 100;
-#endif
+
     return score;
 }
 
@@ -85,7 +79,6 @@ int Evaluator::evalPieces(Board &board, int phase) {
                 int pstBonus = lookupSquareBonus(piecePos, piece, color);
                 totalPstBonus += pstBonus * mul;
 
-#ifdef USE_SAFE_SQUARE
                 //safe square bonus
                 if (piece != KING && piece != PAWN) {
                     int pieceValue = EvalParams::PieceWeights[piece];
@@ -102,7 +95,6 @@ int Evaluator::evalPieces(Board &board, int phase) {
                         totalSafeSquareBonus += (pstBonus + 20) * EvalParams::SAFE_SQUARE_BONUS / 100 * mul;
                     }
                 }
-#endif
 
                 //update pawn table
                 if (piece == PAWN) {
@@ -112,7 +104,6 @@ int Evaluator::evalPieces(Board &board, int phase) {
         }
     }
 
-#ifdef USE_PASSED_PAWNS
     //calculate passed pawn bonuses
     for (int i = 1; i <= 8; i++) {
         bool whiteExists = pawnRanks[WHITE][i] != 0;
@@ -135,7 +126,6 @@ int Evaluator::evalPieces(Board &board, int phase) {
 
 
     }
-#endif
 
     unsafeSquarePenalty = interpolateScore(unsafeSquarePenalty * 2, unsafeSquarePenalty / 2, phase);
 
@@ -169,15 +159,11 @@ int Evaluator::kingSafety(Board &board) {
         }
     }
 
-    int attackEval = 0;
-    int touchEval = 0;
+    int attackEval;
+    int touchEval;
 
-#ifdef USE_KING_ATTACK_PENALTY
     attackEval = (attackedSquares[BLACK] - attackedSquares[WHITE]) * EvalParams::ATTACKED_KING_SQUARE_BONUS;
-#endif
-#ifdef USE_KING_TOUCH_PENALTY
     touchEval = (touchingSquares[BLACK] - touchingSquares[WHITE]) * EvalParams::KING_TOUCH_PENALTY;
-#endif
 
     return attackEval + touchEval;
 }

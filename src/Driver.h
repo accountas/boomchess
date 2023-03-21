@@ -1,9 +1,4 @@
-//
-// Created by marty on 2022-11-05.
-//
-
-#ifndef BOOMCHESS_DRIVER_H
-#define BOOMCHESS_DRIVER_H
+#pragma once
 
 #include "Board.h"
 #include "MoveGenerator.h"
@@ -21,5 +16,3 @@ class Driver {
     void uciMode();
     void perftTest();
 };
-
-#endif //BOOMCHESS_DRIVER_H

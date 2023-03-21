@@ -1,30 +1,6 @@
-#ifndef BOOMCHESS_ENUMS_H
-#define BOOMCHESS_ENUMS_H
+#pragma once
 
 #include <array>
-
-
-//search features
-//#define USE_TT
-//#define USE_MVV_LVA
-//#define USE_KILLER
-//#define USE_HISTORY
-//#define USE_PVS
-//#define USE_ID
-//#define USE_NULL_MOVE
-
-
-//eval features
-//#define USE_QSEARCH
-//#define USE_MOBILITY
-//#define USE_KING_DISTANCE
-//#define USE_KING_TOUCH_PENALTY
-//#define USE_KING_ATTACK_PENALTY
-//#define USE_SAFE_SQUARE
-//#define USE_PASSED_PAWNS
-
-//other features
-#define SEND_UCI_INFO
 
 //engine params
 const bool USE_METRICS = true;
@@ -181,5 +157,3 @@ const std::array<int, 8> allDirections = {
 
 //might want to play around with it
 const std::array<int, 8> explosionDirections = allDirections;
-
-#endif //BOOMCHESS_ENUMS_H

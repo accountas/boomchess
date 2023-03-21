@@ -7,15 +7,7 @@ namespace EvalParams {
 
     const std::array<int, 7> PieceWeights =
         {
-#ifdef PAPER_WEIGHTS
-            0, 100, 90, 0, 220, 850, EVAL_MAX
-#elif defined MIX_WEIGHTS
-            0, 100, 150, 100, 300, 600, EVAL_MAX
-#elif defined STANDARD_WEIGHTS
-            0, 100, 300, 300, 500, 900, EVAL_MAX
-#else
             0, 100, 150, 150, 300, 600, EVAL_MAX
-#endif
         };
 
     const int SAFE_SQUARE_BONUS = 25;
@@ -34,7 +26,7 @@ namespace EvalParams {
         0, 60, 25, 5, 0, 0, 0, 0
     };
     const std::array<int, 8> KINGS_TOUCH_FACTOR_MG = {
-//        0, 10, 5, 1, 0, 0, 0, 0
+        0, 0, 0, 0, 0, 0, 0, 0
     };
     const std::array<int, 8> PASSED_PAWN_BONUS = {
         0, 5, 8, 7, 31, 84, 140, 0

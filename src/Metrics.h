@@ -1,9 +1,4 @@
-//
-// Created by marty on 2022-11-21.
-//
-
-#ifndef BOOMCHESS_SRC_METRICS_H_
-#define BOOMCHESS_SRC_METRICS_H_
+#pragma once
 
 #include <unordered_map>
 #include <string>
@@ -35,5 +30,3 @@ class Metric {
 
 template<int ID, typename T>
 T Metric<ID, T>::value = 0;
-
-#endif //BOOMCHESS_SRC_METRICS_H_

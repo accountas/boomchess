@@ -1,9 +1,4 @@
-//
-// Created by marty on 2022-11-09.
-//
-
-#ifndef BOOMCHESS_SRC_MOVEGENERATOR_H_
-#define BOOMCHESS_SRC_MOVEGENERATOR_H_
+#pragma once
 
 #include <array>
 #include <list>
@@ -71,5 +66,3 @@ class MoveGenerator {
     std::array<std::array<Move, 2>, MAX_DEPTH> killers{};
     std::array<std::array<std::array<int, 128>, 128>, 2> historyTable{};
 };
-
-#endif //BOOMCHESS_SRC_MOVEGENERATOR_H_

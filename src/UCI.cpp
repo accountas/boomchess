@@ -1,8 +1,3 @@
-//
-// Created by marty on 2022-12-13.
-//
-
-
 #include <iostream>
 #include <algorithm>
 #include <iomanip>
@@ -23,6 +18,8 @@ Board UCI::parsePosition(const std::vector<std::string> &tokens) {
                 fen += " " + tokens[i];
             return Board::fromFen(fen);
         }
+
+        return Board::fromFen(DEFAULT_FEN);
     };
 
     Board board = getBoard();
@@ -78,9 +75,7 @@ SearchParams UCI::parseGo(const std::vector<std::string> &tokens) {
 }
 
 void UCI::sendInfo(int depth, int eval, const Move &best, double time) {
-#ifdef SEND_UCI_INFO
-    auto nodesSearched =
-        Metric<NODES_SEARCHED>::get() + Metric<Q_NODES_SEARCHED>::get() - Metric<LEAF_NODES_SEARCHED>::get();
+    auto nodesSearched = Metric<NODES_SEARCHED>::get() + Metric<Q_NODES_SEARCHED>::get() - Metric<LEAF_NODES_SEARCHED>::get();
     std::cout << "info ";
     std::cout << "depth " << depth << " ";
     std::cout << "score cp " << eval << " ";
@@ -91,10 +86,7 @@ void UCI::sendInfo(int depth, int eval, const Move &best, double time) {
     std::cout << "hashfull " << (1000 * Metric<TT_ENTRIES>::get() / TT_SIZE) << " ";
     std::cout << "qwidth " << Metric<TT_ENTRIES>::get() << " ";
     std::cout << std::endl;
-#endif
 }
 void UCI::sendResult(const Move &bestMove) {
-#ifdef SEND_UCI_INFO
     std::cout << "bestmove " << Board::moveToString(bestMove) << std::endl;
-#endif
 }

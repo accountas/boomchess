@@ -1,11 +1,6 @@
-//
-// Created by marty on 2022-11-09.
-//
-
 #include "MoveGenerator.h"
 #include "Common.h"
 #include "EvalParms.h"
-#include <tuple>
 
 void MoveGenerator::generateMoves(const Board &board, int piece) {
     n[curDepth] = 0;
@@ -226,7 +221,6 @@ void MoveGenerator::sortTill(int idx, const Board &board) {
             const int killerOffset = (MAX_HISTORY_TABLE_VAL + 1);
             const int mvvOffset = killerOffset * (KILLER_MOVES_N + 1);
 
-#ifdef USE_MVV_LVA
             //assign MVV-LVA score, we want score to be > 0 for equal captures and < 0 for loosing captures
             if (move.flags & MoveFlags::CAPTURE) {
                 int score = captureScore[curDepth][j];
@@ -245,8 +239,7 @@ void MoveGenerator::sortTill(int idx, const Board &board) {
                 else if (move.flags & MoveFlags::KNIGHT_PROMOTION)
                     curMoveScore += mvvOffset * (EvalParams::PieceWeights[KNIGHT] - EvalParams::PieceWeights[PAWN]);
             }
-#endif
-#ifdef USE_KILLER
+
             //assign killer heuristic score
             if (!(move.flags & MoveFlags::CAPTURE)) {
                 int killerId = KILLER_MOVES_N;
@@ -258,11 +251,10 @@ void MoveGenerator::sortTill(int idx, const Board &board) {
                     killerId--;
                 }
             }
-#endif
-#ifdef USE_HISTORY
+
             //assign history score
             curMoveScore += historyTable[board.moveColor][move.from][move.to];
-#endif
+
             if (curMoveScore > bestMoveScore) {
                 bestMove = j;
                 bestMoveScore = curMoveScore;

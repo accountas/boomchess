@@ -1,7 +1,3 @@
-//
-// Created by marty on 2022-12-13.
-//
-
 #include <string>
 #include <chrono>
 #include <cassert>

@@ -1,9 +1,4 @@
-//
-// Created by marty on 2022-11-19.
-//
-
-#ifndef BOOMCHESS_SRC_TIMER_H_
-#define BOOMCHESS_SRC_TIMER_H_
+#pragma once
 
 #include <chrono>
 
@@ -37,4 +32,3 @@ class Timer {
  private:
     std::chrono::high_resolution_clock::time_point startTs, endTs;
 };
-#endif //BOOMCHESS_SRC_TIMER_H_

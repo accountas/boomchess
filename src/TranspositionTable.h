@@ -1,9 +1,4 @@
-//
-// Created by marty on 2022-11-21.
-//
-
-#ifndef BOOMCHESS_SRC_TRANSPOSITIONTABLE_H_
-#define BOOMCHESS_SRC_TRANSPOSITIONTABLE_H_
+#pragma once
 
 #include <cstdint>
 #include <iostream>
@@ -43,5 +38,3 @@ struct SearchEntry {
     int bound = 0;
     Move bestMove;
 };
-
-#endif //BOOMCHESS_SRC_TRANSPOSITIONTABLE_H_

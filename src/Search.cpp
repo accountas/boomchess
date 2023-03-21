@@ -1,7 +1,3 @@
-//
-// Created by marty on 2022-11-17.
-//
-
 #include <iomanip>
 #include <thread>
 #include "Search.h"
@@ -43,14 +39,8 @@ void Search::rootSearch() {
 
     generator.setDepth(0);
 
-#ifdef USE_ID
-    int depthStart = 0;
-#else
-    int depthStart = params.depthLimit - 1;
-#endif
-
     int currentDepth;
-    for (currentDepth = depthStart; currentDepth < searchParams.depthLimit; currentDepth++) {
+    for (currentDepth = 0; currentDepth < searchParams.depthLimit; currentDepth++) {
         generator.ageHistory(0);
         generator.ageHistory(1);
         generator.clearKillers();
@@ -123,7 +113,6 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
     Metric<NODES_SEARCHED>::inc();
     Move ttMove(0, 0, MoveFlags::NULL_MOVE);
 
-#ifdef USE_TT
     //lookup transposition table
     auto hash = board.zobristKey.value;
     if (tTable.at(hash).zobristKey == hash) {
@@ -145,7 +134,6 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
 
         ttMove = entry.bestMove;
     }
-#endif
 
     //base case
     if (depthLeft <= 0) {
@@ -157,7 +145,6 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
     bool isPV = beta - alpha != 1;
 
     //null move heuristic
-#ifdef USE_NULL_MOVE
     if (!board.isKingCaptured()
         && !board.madeNullMove
         && depthLeft > NULL_MOVE_R
@@ -176,7 +163,6 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
     } else if (board.madeNullMove) {
         board.madeNullMove = false;
     }
-#endif
 
     generator.increaseDepth();
     generator.generateMoves(board);
@@ -201,7 +187,6 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
 
         movesChecked++;
         int eval;
-#ifdef USE_PVS
         if (i == 0) {
             eval = -alphaBeta(depthLeft - 1, -beta, -alpha);
         } else {
@@ -210,9 +195,7 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
                 eval = -alphaBeta(depthLeft - 1, -beta, -alpha);
             }
         }
-#else
-        eval = -alphaBeta(depthLeft - 1, -beta, -alpha);
-#endif
+
         board.unmakeMove();
 
         if (eval > value) {
@@ -222,15 +205,12 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
                 alpha = value;
             }
         }
-#ifndef NO_AB
         if (alpha >= beta) {
             generator.updateHistory(board.moveColor, move, depthLeft);
             generator.markKiller(i);
             break;
         }
-#endif
     }
-
 
     //no legal moves, tie or lost
     if (movesChecked == 0) {
@@ -238,7 +218,6 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
         return board.isInCheck() || board.isKingCaptured() ? EVAL_MIN : 0;
     }
 
-#ifdef USE_TT
     //save move to TT
     SearchEntry ttEntry;
     ttEntry.value = value;
@@ -257,7 +236,6 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
         Metric<TT_ENTRIES>::inc();
     }
     tTable.store(hash, ttEntry);
-#endif
 
     generator.decreaseDepth();
     return value;
@@ -265,10 +243,6 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
 
 int Search::quiescence(int alpha, int beta) {
     Metric<Q_NODES_SEARCHED>::inc();
-
-#ifndef USE_QSEARCH
-    return evaluator.evaluateRelative(board);
-#endif
 
     if (!canSearch()) {
         return 0;

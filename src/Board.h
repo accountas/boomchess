@@ -1,5 +1,4 @@
-#ifndef BOOMCHESS_BOARD_H
-#define BOOMCHESS_BOARD_H
+#pragma once
 
 #include <cstdint>
 #include <string>
@@ -152,5 +151,3 @@ class Board {
 
     void precalculateAttackTable();
 };
-
-#endif //BOOMCHESS_BOARD_H

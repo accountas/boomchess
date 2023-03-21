@@ -1,9 +1,4 @@
-//
-// Created by marty on 2022-11-17.
-//
-
-#ifndef BOOMCHESS_SRC_SEARCH_H_
-#define BOOMCHESS_SRC_SEARCH_H_
+#pragma once
 
 #include "Board.h"
 #include "MoveGenerator.h"
@@ -54,5 +49,3 @@ class Search {
     int quiescence(int alpha, int beta);
     int alphaBeta(int depthLeft, int alpha, int beta);
 };
-
-#endif //BOOMCHESS_SRC_SEARCH_H_

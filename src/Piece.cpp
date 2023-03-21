@@ -1,7 +1,3 @@
-//
-// Created by marty on 2022-11-05.
-//
-
 #include <string>
 #include <unordered_map>
 #include "Piece.h"

@@ -1,9 +1,4 @@
-//
-// Created by marty on 2022-11-05.
-//
-
-#ifndef BOOMCHESS_PIECE_H
-#define BOOMCHESS_PIECE_H
+#pragma once
 
 #include <cstdint>
 #include "Common.h"
@@ -25,5 +20,3 @@ class Piece {
     };
     char toChar() const;
 };
-
-#endif //BOOMCHESS_PIECE_H

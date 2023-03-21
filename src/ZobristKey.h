@@ -1,9 +1,4 @@
-//
-// Created by marty on 2022-11-19.
-//
-
-#ifndef BOOMCHESS_SRC_ZOBRISTKEY_H_
-#define BOOMCHESS_SRC_ZOBRISTKEY_H_
+#pragma once
 
 #include <array>
 #include <cstdint>
@@ -44,5 +39,3 @@ class ZobristKey {
     std::array<std::array<uint64_t, 4>, 2> castlingRightNumbers{}; //[color][right]
     void generateNumbers();
 };
-
-#endif //BOOMCHESS_SRC_ZOBRISTKEY_H_

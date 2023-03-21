@@ -1,7 +1,3 @@
-//
-// Created by marty on 2022-11-19.
-//
-
 #include <random>
 #include <iostream>
 #include "ZobristKey.h"

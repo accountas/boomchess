@@ -1,7 +1,3 @@
-//
-// Created by marty on 2022-11-09.
-//
-
 #include <sstream>
 #include <tuple>
 #include "Board.h"

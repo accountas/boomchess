@@ -1,9 +1,4 @@
-//
-// Created by marty on 2022-11-09.
-//
-
-#ifndef BOOMCHESS_MOVE_H_
-#define BOOMCHESS_MOVE_H_
+#pragma once
 
 #include <cstdint>
 
@@ -21,4 +16,3 @@ class Move {
     }
 
 };
-#endif //BOOMCHESS_MOVE_H_

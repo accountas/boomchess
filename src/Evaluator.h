@@ -1,9 +1,4 @@
-//
-// Created by marty on 2022-11-17.
-//
-
-#ifndef BOOMCHESS_SRC_EVALUATOR_H_
-#define BOOMCHESS_SRC_EVALUATOR_H_
+#pragma once
 
 #include "Board.h"
 #include "MoveGenerator.h"
@@ -28,5 +23,3 @@ class Evaluator {
     int getPhase(const Board &board);
     static int interpolateScore(int midgame, int endgame, int phase);
 };
-
-#endif //BOOMCHESS_SRC_EVALUATOR_H_
