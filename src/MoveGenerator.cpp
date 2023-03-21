@@ -2,7 +2,7 @@
 #include "Common.h"
 #include "EvalParms.h"
 
-void MoveGenerator::generateMoves(const Board &board, int piece) {
+void MoveGenerator::generateMoves(const Board &board) {
     n[curDepth] = 0;
     nSorted[curDepth] = 0;
 
@@ -11,24 +11,12 @@ void MoveGenerator::generateMoves(const Board &board, int piece) {
         return;
     }
 
-    if (piece == -1 || piece == PAWN) {
-        generatePawnMoves(board);
-    }
-    if (piece == -1 || piece == KNIGHT) {
-        generateKnightMoves(board);
-    }
-    if (piece == -1 || piece == BISHOP) {
-        generateBishopMoves(board);
-    }
-    if (piece == -1 || piece == QUEEN) {
-        generateQueenMoves(board);
-    }
-    if (piece == -1 || piece == KING) {
-        generateKingMoves(board);
-    }
-    if (piece == -1 || piece == ROOK) {
-        generateRookMoves(board);
-    }
+    generatePawnMoves(board);
+    generateKnightMoves(board);
+    generateBishopMoves(board);
+    generateQueenMoves(board);
+    generateKingMoves(board);
+    generateRookMoves(board);
 }
 
 void MoveGenerator::generatePawnMoves(const Board &board) {

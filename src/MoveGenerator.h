@@ -16,7 +16,7 @@ class MoveGenerator {
     explicit MoveGenerator(bool fast) : fast(fast) {}
     MoveGenerator() : fast(false) {}
 
-    void generateMoves(const Board &board, int piece = -1);
+    void generateMoves(const Board &board);
 
     int size() {
         return n[curDepth];
