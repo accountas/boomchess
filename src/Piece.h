@@ -7,10 +7,9 @@ class Piece {
  public:
     int piece;
     int pieceListLocation;
-    int value;
 
     Piece(int piece, int pieceListLocation);
-    Piece() : piece(PieceType::EMPTY), pieceListLocation(127), value(0) {};
+    Piece() : piece(PieceType::EMPTY), pieceListLocation(127) {};
 
     int type() const {
         return piece & (~BLACK_FLAG);

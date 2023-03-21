@@ -79,22 +79,22 @@ int Evaluator::evalPieces(Board &board, int phase) {
                 int pstBonus = lookupSquareBonus(piecePos, piece, color);
                 totalPstBonus += pstBonus * mul;
 
-                //safe square bonus
-                if (piece != KING && piece != PAWN) {
-                    int pieceValue = EvalParams::PieceWeights[piece];
-                    int explosionValue = 0;
-
-                    for (int direction : explosionDirections) {
-                        int victimIdx = piecePos + direction;
-                        if (Board::inBounds(victimIdx)) {
-                            explosionValue += board[victimIdx].value * (board[victimIdx].color() == color ? -1 : 1);
-                        }
-                    }
-
-                    if (explosionValue >= pieceValue && pstBonus > -20) {
-                        totalSafeSquareBonus += (pstBonus + 20) * EvalParams::SAFE_SQUARE_BONUS / 100 * mul;
-                    }
-                }
+//                //safe square bonus
+//                if (piece != KING && piece != PAWN) {
+//                    int pieceValue = EvalParams::PieceWeights[piece];
+//                    int explosionValue = 0;
+//
+//                    for (int direction : explosionDirections) {
+//                        int victimIdx = piecePos + direction;
+//                        if (Board::inBounds(victimIdx)) {
+//                            explosionValue += board[victimIdx].value * (board[victimIdx].color() == color ? -1 : 1);
+//                        }
+//                    }
+//
+//                    if (explosionValue >= pieceValue && pstBonus > -20) {
+//                        totalSafeSquareBonus += (pstBonus + 20) * EvalParams::SAFE_SQUARE_BONUS / 100 * mul;
+//                    }
+//                }
 
                 //update pawn table
                 if (piece == PAWN) {

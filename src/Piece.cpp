@@ -27,9 +27,4 @@ Piece::Piece(int piece,
              int pieceListLocation)
     : piece(piece),
       pieceListLocation(pieceListLocation) {
-    value = 0;
-    int type = piece & (~BLACK_FLAG);
-    if (type != PAWN) {
-        value = EvalParams::PieceWeights[type];
-    }
 }
