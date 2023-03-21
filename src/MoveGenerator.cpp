@@ -327,6 +327,13 @@ void MoveGenerator::clearKillers() {
         }
     }
 }
+void MoveGenerator::addMove(int from, int to, int flags) {
+    if(!countOnly){
+        moves[curDepth][n[curDepth]++] = Move(from, to, flags);
+    } else {
+        n[curDepth]++;
+    }
+}
 
 
 

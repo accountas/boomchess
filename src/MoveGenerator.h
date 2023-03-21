@@ -39,16 +39,19 @@ class MoveGenerator {
     Move &operator[](int idx) {
         return moves[curDepth][idx];
     }
+    void setCountOnly(bool flag){
+        countOnly = flag;
+    }
     void markKiller(int idx);
     void updateHistory(int sideToMove, const Move &move, int depth);
     void clearHistory();
     void ageHistory(int side);
     bool isGoodCapture(int idx);
-
     void clearKillers();
  private:
     bool fast = false;
     int curDepth = 0;
+    int countOnly = false;
     void sortTill(int idx, const Board &board);
     void generatePawnMoves(const Board &board);
     void generateBishopMoves(const Board &board);
@@ -59,9 +62,7 @@ class MoveGenerator {
     void generateSlidingMoves(const Board &board, int startingSquare, int direction);
     void generateCastle(const Board &board, int kingSquare, int castleDirection);
     void calculateLatestCaptureScore(const Board &board);
-    void addMove(int from, int to, int flags = 0) {
-        moves[curDepth][n[curDepth]++] = Move(from, to, flags);
-    }
+    void addMove(int from, int to, int flags = 0);
 
     std::array<std::array<Move, 2>, MAX_DEPTH> killers{};
     std::array<std::array<std::array<int, 128>, 128>, 2> historyTable{};

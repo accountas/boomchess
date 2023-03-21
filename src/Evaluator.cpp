@@ -39,7 +39,9 @@ int Evaluator::mobilityBonus(Board &board) {
     int currentPlayerMoves = generator.size();
 
     board.makeMove(Move(0, 0, MoveFlags::NULL_MOVE));
+    generator.setCountOnly(true);
     generator.generateMoves(board);
+    generator.setCountOnly(false);
     board.unmakeMove();
 
     int otherPlayerMoves = generator.size();
