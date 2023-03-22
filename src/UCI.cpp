@@ -19,7 +19,7 @@ Board UCI::parsePosition(const std::vector<std::string> &tokens) {
             return Board::fromFen(fen);
         }
 
-        return Board::fromFen(DEFAULT_FEN);
+//        return Board::fromFen(DEFAULT_FEN);
     };
 
     Board board = getBoard();

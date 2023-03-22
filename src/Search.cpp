@@ -6,23 +6,15 @@
 #include "Timer.h"
 
 void Search::startSearch(const SearchParams &params) {
+    if(searchActive){
+        return;
+    }
+
+    searchActive = true;
+    searchStarted = Timer::getMillis();
     searchParams = params;
 
-    if (!searchActive) {
-        searchActive = true;
-        std::thread([&]() { rootSearch(); }).detach();
-
-        if (params.timeLimit > 0) {
-            std::thread([&, params]() {
-                std::this_thread::sleep_for(std::chrono::milliseconds(params.timeLimit));
-                killSearch();
-            }).detach();
-        }
-    }
-}
-
-void Search::killSearch() {
-    searchActive = false;
+    std::thread([&]() { rootSearch(); }).detach();
 }
 
 void Search::rootSearch() {
@@ -33,6 +25,7 @@ void Search::rootSearch() {
 
     Timer timer;
     timer.start();
+
     Metric<NODES_SEARCHED>::set(0);
     Metric<Q_NODES_SEARCHED>::set(0);
     Metric<LEAF_NODES_SEARCHED>::set(0);
@@ -41,32 +34,27 @@ void Search::rootSearch() {
 
     int currentDepth;
     for (currentDepth = 0; currentDepth < searchParams.depthLimit; currentDepth++) {
-        generator.ageHistory(0);
-        generator.ageHistory(1);
+        generator.ageHistory(WHITE);
+        generator.ageHistory(BLACK);
         generator.clearKillers();
         generator.generateMoves(board);
+        generator.sortTT(bestMove);
 
-        if (currentDepth > 0) {
-            generator.sortTT(bestMove);
-        }
 
         int alpha = -1e9;
         int beta = 1e9;
 
         for (int i = 0; i < generator.size(); i++) {
             auto move = generator.getSorted(i, board);
-            board.makeMove(move);
 
-            if (!board.isLegal()) {
-                board.unmakeMove();
-                continue;
-            }
+            if (!board.tryMakeMove(move)) continue;
 
             if (bestMove.flags & MoveFlags::NULL_MOVE) {
                 bestMove = generator[i];
             }
 
             int eval = -alphaBeta(currentDepth, -beta, -alpha);
+
             board.unmakeMove();
 
             if (!canSearch()) {
@@ -95,7 +83,6 @@ void Search::rootSearch() {
 
     UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
 
-
     board = boardStart;
     searchActive = false;
     UCI::sendResult(bestMove);
@@ -113,7 +100,7 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
     Metric<NODES_SEARCHED>::inc();
     Move ttMove(0, 0, MoveFlags::NULL_MOVE);
 
-    //lookup transposition table
+    // lookup transposition table
     auto hash = board.zobristKey.value;
     if (tTable.at(hash).zobristKey == hash) {
         auto entry = tTable.at(hash);
@@ -173,19 +160,18 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
     }
 
     //iterate over possible moves
-    int movesChecked = 0;
-    int bestMove = 0;
+    int legalMovesFound = 0;
+    int bestMoveIdx = 0;
     int value = EVAL_MIN;
+
     for (int i = 0; i < generator.size(); i++) {
         auto move = generator.getSorted(i, board);
-        board.makeMove(move);
 
-        if (!board.isLegal()) {
-            board.unmakeMove();
-            continue;
-        }
+        if(!board.tryMakeMove(move)) continue;
 
-        movesChecked++;
+        legalMovesFound++;
+
+        // Principal variation search
         int eval;
         if (i == 0) {
             eval = -alphaBeta(depthLeft - 1, -beta, -alpha);
@@ -199,12 +185,14 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
         board.unmakeMove();
 
         if (eval > value) {
-            bestMove = i;
+            bestMoveIdx = i;
             value = eval;
             if (eval > alpha) {
                 alpha = value;
             }
         }
+
+        //beta cutoff
         if (alpha >= beta) {
             generator.updateHistory(board.moveColor, move, depthLeft);
             generator.markKiller(i);
@@ -213,7 +201,7 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
     }
 
     //no legal moves, tie or lost
-    if (movesChecked == 0) {
+    if (legalMovesFound == 0) {
         generator.decreaseDepth();
         return board.isInCheck() || board.isKingCaptured() ? EVAL_MIN : 0;
     }
@@ -221,7 +209,7 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
     //save move to TT
     SearchEntry ttEntry;
     ttEntry.value = value;
-    ttEntry.bestMove = generator[bestMove];
+    ttEntry.bestMove = generator[bestMoveIdx];
     ttEntry.depth = depthLeft;
     ttEntry.zobristKey = hash;
     if (value <= alphaStart) {
@@ -269,12 +257,7 @@ int Search::quiescence(int alpha, int beta) {
             break;
         }
 
-        board.makeMove(move);
-
-        if (!board.isLegal()) {
-            board.unmakeMove();
-            continue;
-        }
+        if(!board.tryMakeMove(move)) continue;
 
         int score = -quiescence(-beta, -alpha);
         board.unmakeMove();
@@ -295,5 +278,38 @@ int Search::quiescence(int alpha, int beta) {
     return bestScore;
 }
 
+bool Search::canSearch() {
+    if (!searchActive) {
+        return false;
+    }
 
+    long long nodesSearched = Metric<NODES_SEARCHED>::get()
+        - Metric<LEAF_NODES_SEARCHED>::get()
+        + Metric<Q_NODES_SEARCHED>::get();
 
+    //if over the node limit
+    if(searchParams.nodeLimit > 0 && nodesSearched >= searchParams.nodeLimit){
+        searchActive = false;
+        return false;
+    }
+
+    //if over the time limit, (only check every 2^14 nodes for smaller overhead)
+    if(searchParams.timeLimit > 0
+        && (nodesSearched & ((1 << 14) - 1)) == 0
+        && Timer::getMillis() - searchStarted >= searchParams.timeLimit){
+        searchActive = false;
+        return false;
+    }
+
+    return true;
+}
+
+void Search::resetCache() {
+    Metric<TT_ENTRIES>::set(0);
+    tTable.clear();
+    generator.clearHistory();
+    generator.clearKillers();
+}
+void Search::killSearch() {
+    searchActive = false;
+}

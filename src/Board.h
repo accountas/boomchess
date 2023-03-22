@@ -44,6 +44,7 @@ class Board {
     [[maybe_unused]] std::string toString() const;
 
     void makeMove(const Move &move);
+    bool tryMakeMove(const Move &move);
     void unmakeMove();
     void addPiece(int idx, Piece piece);
     void removePiece(int idx, bool capture = false);

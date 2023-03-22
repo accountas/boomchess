@@ -392,6 +392,14 @@ std::string Board::moveToString(const Move &move) {
 
     return result;
 }
+bool Board::tryMakeMove(const Move &move) {
+    makeMove(move);
+    if(!isLegal()){
+        unmakeMove();
+        return false;
+    }
+    return true;
+}
 
 Board::MoveInfo::MoveInfo(const Move &move,
                           int num_captured,

@@ -29,6 +29,11 @@ class Timer {
         end();
     }
 
+    static long long getMillis(){
+        auto now = std::chrono::high_resolution_clock::now().time_since_epoch();
+        return std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+    }
+
  private:
     std::chrono::high_resolution_clock::time_point startTs, endTs;
 };

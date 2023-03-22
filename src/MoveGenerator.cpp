@@ -273,6 +273,10 @@ void MoveGenerator::calculateLatestCaptureScore(const Board &board) {
 }
 
 void MoveGenerator::sortTT(const Move &move) {
+    if(move.flags & MoveFlags::NULL_MOVE){
+        return;
+    }
+
     for (int i = 0; i < n[curDepth]; i++) {
         if (moves[curDepth][i].from == move.from && moves[curDepth][i].to == move.to) {
             std::swap(moves[curDepth][0], moves[curDepth][i]);
