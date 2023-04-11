@@ -5,6 +5,7 @@
 #include "Board.h"
 #include "Search.h"
 #include "UCI.h"
+#include "tools/DatasetGeneration.h"
 #include <sstream>
 #include <bitset>
 
@@ -28,6 +29,10 @@ void Driver::start() {
             bool divide = std::count(tokens.begin(), tokens.end(), "div");
             perft(depth, fen, divide);
 
+        }
+        if(tokens[0] == "datagen"){
+            DatasetGenerator generator;
+            generator.generate(tokens);
         }
         if (tokens[0] == "test") {
             perftTest();

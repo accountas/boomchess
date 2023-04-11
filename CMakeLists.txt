@@ -4,7 +4,7 @@ project(BoomChess)
 set(CMAKE_CXX_STANDARD 17)
 
 
-set(COMMON_SOURCES src/main.cpp src/Driver.cpp src/Driver.h src/Board.cpp src/Board.h src/Piece.cpp src/Piece.h src/Common.h src/Move.h src/MoveGenerator.cpp src/MoveGenerator.h src/FenParsing.cpp src/Search.cpp src/Search.h src/Evaluator.cpp src/Evaluator.h src/Timer.h src/ZobristKey.cpp src/ZobristKey.h src/TranspositionTable.h src/Metrics.h src/Perft.cpp src/UCI.cpp src/UCI.h)
+set(COMMON_SOURCES src/main.cpp src/Driver.cpp src/Driver.h src/Board.cpp src/Board.h src/Piece.cpp src/Piece.h src/Common.h src/Move.h src/MoveGenerator.cpp src/MoveGenerator.h src/FenParsing.cpp src/Search.cpp src/Search.h src/Evaluator.cpp src/Evaluator.h src/Timer.h src/ZobristKey.cpp src/ZobristKey.h src/TranspositionTable.h src/Metrics.h src/Perft.cpp src/UCI.cpp src/UCI.h src/tools/DatasetGeneration.h)
 set(ALL_SEARCH USE_MVV_LVA USE_KILLER USE_HISTORY USE_TT USE_ID USE_PVS USE_NULL_MOVE)
 
 add_executable(BoomChess ${COMMON_SOURCES})

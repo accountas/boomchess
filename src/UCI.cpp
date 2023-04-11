@@ -75,6 +75,10 @@ SearchParams UCI::parseGo(const std::vector<std::string> &tokens) {
 }
 
 void UCI::sendInfo(int depth, int eval, const Move &best, double time) {
+    if(isQuiet){
+        return;
+    }
+
     auto nodesSearched = Metric<NODES_SEARCHED>::get() + Metric<Q_NODES_SEARCHED>::get() - Metric<LEAF_NODES_SEARCHED>::get();
     std::cout << "info ";
     std::cout << "depth " << depth << " ";
@@ -88,5 +92,12 @@ void UCI::sendInfo(int depth, int eval, const Move &best, double time) {
     std::cout << std::endl;
 }
 void UCI::sendResult(const Move &bestMove) {
+    if(isQuiet){
+        return;
+    }
+
     std::cout << "bestmove " << Board::moveToString(bestMove) << std::endl;
+}
+void UCI::setQuiet(bool value) {
+    isQuiet = value;
 }
