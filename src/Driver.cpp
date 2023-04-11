@@ -5,6 +5,7 @@
 #include "Board.h"
 #include "Search.h"
 #include "UCI.h"
+#include <sstream>
 #include <bitset>
 
 void Driver::start() {

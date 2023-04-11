@@ -22,7 +22,8 @@ class Board {
           int move,
           const std::array<int, 2> &castling_rights,
           int en_passant_square,
-          int num_half_moves);
+          int num_half_moves,
+          int total_moves);
 
     //Piece representation
     BoardArray board;
@@ -33,6 +34,7 @@ class Board {
     int moveColor;
     int enPassantSquare;
     int numHalfMoves;
+    int totalMoves;
     bool madeNullMove = false;
     std::array<int, 2> castlingRights;
 
@@ -40,6 +42,8 @@ class Board {
     ZobristKey zobristKey{};
 
     static Board fromFen(const std::string &fen);
+
+    std::string toFen();
 
     [[maybe_unused]] std::string toString() const;
 

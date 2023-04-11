@@ -8,14 +8,16 @@ Board::Board(const BoardArray &board,
              int move,
              const std::array<int, 2> &castling_rights,
              int en_passant_square,
-             int num_half_moves)
+             int num_half_moves,
+             int total_moves)
     : board(board),
       pieces(pieces),
       pieceCounts(piece_counts),
       moveColor(move),
       castlingRights(castling_rights),
       enPassantSquare(en_passant_square),
-      numHalfMoves(num_half_moves) {
+      numHalfMoves(num_half_moves),
+      totalMoves(total_moves) {
 
     //set initial hash
     for (int color : std::array<int, 2>{WHITE, BLACK}) {
@@ -62,6 +64,12 @@ void Board::makeMove(const Move &move) {
                              numHalfMoves,
                              castlingRights,
                              0);
+
+    //full move clock
+    if(moveColor == BLACK){
+        totalMoves += 1;
+    }
+
 
     //update castling rights
     if (board[move.from].type() == KING) {
@@ -166,6 +174,11 @@ void Board::makeMove(const Move &move) {
 void Board::unmakeMove() {
     auto lastMoveUndo = moveHistory.back();
     moveHistory.pop_back();
+
+    //full move clock
+    if(moveColor == WHITE){
+        totalMoves -= 1;
+    }
 
     //restore game state
     flipMoveColor();
