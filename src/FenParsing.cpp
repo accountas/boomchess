@@ -42,7 +42,7 @@ Board Board::fromFen(const std::string &fen) {
     return {boardArray, pieceArray, pieceCountArray, move, castling, enPassantSquare, halfMoves, totalMoves};
 }
 
-std::string Board::toFen(){
+std::string Board::toFen() const {
     std::string fen = "";
 
     //build pieces

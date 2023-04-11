@@ -43,7 +43,7 @@ class Board {
 
     static Board fromFen(const std::string &fen);
 
-    std::string toFen();
+    std::string toFen() const;
 
     [[maybe_unused]] std::string toString() const;
 

@@ -12,6 +12,7 @@ class Search {
 
     void setBoard(const Board &b) {board = b;}
     void startSearch(const SearchParams &params);
+    std::pair<Move, int>  findBestMove(const SearchParams &params);
     void resetCache();
     void killSearch();
 
@@ -26,6 +27,6 @@ class Search {
     TranspositionTable<SearchEntry, TT_SIZE> tTable{};
     int quiescence(int alpha, int beta);
     int alphaBeta(int depthLeft, int alpha, int beta);
-    void rootSearch();
+    std::pair<Move, int>  rootSearch();
     [[nodiscard]] bool canSearch();
 };

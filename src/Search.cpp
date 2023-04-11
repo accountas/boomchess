@@ -17,7 +17,13 @@ void Search::startSearch(const SearchParams &params) {
     std::thread([&]() { rootSearch(); }).detach();
 }
 
-void Search::rootSearch() {
+std::pair<Move, int> Search::findBestMove(const SearchParams &params){
+    searchActive = true;
+    searchParams = params;
+    return rootSearch();
+}
+
+std::pair<Move, int> Search::rootSearch() {
     auto boardStart = board;
 
     Move bestMove(0, 0, MoveFlags::NULL_MOVE);
@@ -86,6 +92,8 @@ void Search::rootSearch() {
     board = boardStart;
     searchActive = false;
     UCI::sendResult(bestMove);
+
+    return {bestMove, bestEval};
 }
 
 int Search::alphaBeta(int depthLeft, int alpha, int beta) {
