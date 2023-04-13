@@ -1,5 +1,6 @@
 #include <tuple>
 #include <functional>
+#include <string>
 #include "Board.h"
 
 Board::Board(const BoardArray &board,

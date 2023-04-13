@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 #include <sstream>
 #include <vector>
@@ -10,6 +11,7 @@
 #include "../Common.h"
 #include "../Search.h"
 #include "../Timer.h"
+#include "../UCI.h"
 
 class DatasetGenerator {
 
@@ -52,10 +54,13 @@ class DatasetGenerator {
         std::string fen;
 
         int linesRead = 0;
+        int fensProcessed = 0;
         Search search;
 
         while (std::getline(positionsFile, fen)){
-            if(linesRead < params.start || (params.skip > 0 && (linesRead - params.start) % params.skip != 0)){
+            linesRead++;
+
+            if(linesRead - 1 < params.start || (params.skip > 0 && (linesRead - params.start - 1) % params.skip != 0)){
                 continue;
             }
 
@@ -72,11 +77,12 @@ class DatasetGenerator {
                 outputFile << "," << evals[i];
             }
             outputFile << "," << Metric<NODES_SEARCHED>::get() + Metric<Q_NODES_SEARCHED>::get() - Metric<LEAF_NODES_SEARCHED>::get();
-            outputFile << std::endl;
-            linesRead++;
+            outputFile << std::endl;;
 
-            if(linesRead % 10 == 0){
-                std::cout << "Evaluated " << linesRead << "fens | " << linesRead / timer.getSecondsFromStart() << "fens/s" << std::endl;
+            fensProcessed += 1;
+
+            if(fensProcessed % 10 == 0){
+                std::cout << params.start << ": Evaluated " << fensProcessed << " fens | " << fensProcessed / timer.getSecondsFromStart() << " fens/s" << std::endl;
             }
         }
         UCI::setQuiet(false);

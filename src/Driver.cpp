@@ -8,12 +8,16 @@
 #include "tools/DatasetGeneration.h"
 #include <sstream>
 #include <bitset>
+#include <mpi.h>
 
 void Driver::start() {
     std::string input;
 
+    std::cout << "Started:" << std::endl;
+
     while (true) {
         getline(std::cin, input);
+        std::cout << input << std::endl;
         auto tokens = tokenizeString(input, ' ');
 
         if (tokens[0] == "uci") {
@@ -37,6 +41,31 @@ void Driver::start() {
         else if(tokens[0] == "evaluatepos"){
             DatasetGenerator generator;
             generator.evaluatePositions(tokens);
+        }
+        else if(tokens[0] == "mpievaluate"){
+            int rank, size;
+    
+            MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+            MPI_Comm_size(MPI_COMM_WORLD, &size);
+            
+            int start = rank;
+            int skip = size;
+
+            tokens.push_back("start");
+            tokens.push_back(std::to_string(rank));
+
+            tokens.push_back("skip");
+            tokens.push_back(std::to_string(size));
+
+            tokens.push_back("outputfile");
+            tokens.push_back("evaluated_" + std::to_string(rank) + ".csv");
+            
+            std::cout << "Hello from process: "  << rank << " / " << size << std::endl;
+
+            DatasetGenerator generator;
+            generator.evaluatePositions(tokens);
+
+            MPI_Finalize();
         }
         else if (tokens[0] == "test") {
             perftTest();
