@@ -20,7 +20,7 @@ void Driver::start() {
             uciMode();
             break;
         }
-        if (tokens[0] == "perft") {
+        else if (tokens[0] == "perft") {
             std::string fen = tokens[1];
             for (int i = 2; i <= 6; i++)
                 fen += " " + tokens[i];
@@ -30,15 +30,22 @@ void Driver::start() {
             perft(depth, fen, divide);
 
         }
-        if(tokens[0] == "datagen"){
+        else if(tokens[0] == "genpos"){
             DatasetGenerator generator;
-            generator.generate(tokens);
+            generator.generatePositions(tokens);
         }
-        if (tokens[0] == "test") {
+        else if(tokens[0] == "evaluatepos"){
+            DatasetGenerator generator;
+            generator.evaluatePositions(tokens);
+        }
+        else if (tokens[0] == "test") {
             perftTest();
         }
-        if (tokens[0] == "q") {
+        else if (tokens[0] == "q") {
             break;
+        }
+        else {
+            std::cout << "unknown Token" << std::endl;
         }
     }
 }

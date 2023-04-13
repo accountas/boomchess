@@ -10,7 +10,7 @@ set(ALL_SEARCH USE_MVV_LVA USE_KILLER USE_HISTORY USE_TT USE_ID USE_PVS USE_NULL
 add_executable(BoomChess ${COMMON_SOURCES})
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -g -pthread")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -g -pthread -fsanitize=address")
 else ()
     MATH(EXPR stack_size "32 * 1024 * 1024") # 32 Mb
     set(CMAKE_EXE_LINKER_FLAGS "-Wl,--stack,${stack_size}")

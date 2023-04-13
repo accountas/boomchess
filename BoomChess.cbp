@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="BoomChess"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="BoomChess">
+				<Option output="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/BoomChess" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 BoomChess"/>
+					<CompileFile command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="BoomChess/fast">
+				<Option output="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/BoomChess" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 BoomChess/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/Board.cpp">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/Board.h">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/Common.h">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/Driver.cpp">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/Driver.h">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/Evaluator.cpp">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/Evaluator.h">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/FenParsing.cpp">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/Metrics.h">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/Move.h">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/MoveGenerator.cpp">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/MoveGenerator.h">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/Perft.cpp">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/Piece.cpp">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/Piece.h">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/Search.cpp">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/Search.h">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/Timer.h">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/TranspositionTable.h">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/UCI.cpp">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/UCI.h">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/ZobristKey.cpp">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/ZobristKey.h">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/src/main.cpp">
+			<Option target="BoomChess"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/marty/Desktop/Kursinis/BoomChess/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

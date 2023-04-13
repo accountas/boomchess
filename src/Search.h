@@ -16,6 +16,7 @@ class Search {
     void resetCache();
     void killSearch();
 
+    std::vector<int> getEvalPerDepth(const SearchParams &params);
  private:
     Board board;
     MoveGenerator generator;
@@ -27,6 +28,6 @@ class Search {
     TranspositionTable<SearchEntry, TT_SIZE> tTable{};
     int quiescence(int alpha, int beta);
     int alphaBeta(int depthLeft, int alpha, int beta);
-    std::pair<Move, int>  rootSearch();
+    std::pair<Move, int> rootSearch(std::vector<int> *evaluations = nullptr);
     [[nodiscard]] bool canSearch();
 };

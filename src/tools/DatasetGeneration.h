@@ -19,13 +19,16 @@ class DatasetGenerator {
         int maxPly = 150;
         int evalDepth = 8;
         int count = 30;
-        int totalRandomPly = 4;
-        float saveRate = 0.04;
-        std::string outputFileName = "dataset.csv";
+        int totalRandomPly = 6;
+        int skip = 0;
+        int start = 0;
+        float saveRate = 0.20;
+        std::string outputFileName;
+        std::string inputFileName;
     };
 
  public:
-    void generate(const std::vector<std::string> &tokens) {
+    void generatePositions(const std::vector<std::string> &tokens) {
         UCI::setQuiet(true);
         timer.start();
 
@@ -38,10 +41,53 @@ class DatasetGenerator {
         UCI::setQuiet(false);
     }
 
+    void evaluatePositions(const std::vector<std::string> &tokens){
+        UCI::setQuiet(true);
+        timer.start();
+
+        auto params = parseParams(tokens);
+        positionsFile.open(params.inputFileName);
+        outputFile.open(params.outputFileName);
+
+        std::string fen;
+
+        int linesRead = 0;
+        Search search;
+
+        while (std::getline(positionsFile, fen)){
+            if(linesRead < params.start || (params.skip > 0 && (linesRead - params.start) % params.skip != 0)){
+                continue;
+            }
+
+            if(fen.empty()){
+                continue;
+            }
+
+            search.resetCache();
+            search.setBoard(Board::fromFen(fen));
+            auto evals = search.getEvalPerDepth(SearchParams{params.evalDepth, -1, -1});
+
+            outputFile << fen;
+            for(int i = 0; i < params.evalDepth; i++){
+                outputFile << "," << evals[i];
+            }
+            outputFile << "," << Metric<NODES_SEARCHED>::get() + Metric<Q_NODES_SEARCHED>::get() - Metric<LEAF_NODES_SEARCHED>::get();
+            outputFile << std::endl;
+            linesRead++;
+
+            if(linesRead % 10 == 0){
+                std::cout << "Evaluated " << linesRead << "fens | " << linesRead / timer.getSecondsFromStart() << "fens/s" << std::endl;
+            }
+        }
+        UCI::setQuiet(false);
+    }
+
+
  private:
     int positionsGenerated = 0;
     std::mt19937 randomGenerator{1};
     std::ofstream outputFile;
+    std::ifstream positionsFile;
     std::unordered_set<uint64_t> positionSet;
     Timer timer;
 
@@ -51,7 +97,7 @@ class DatasetGenerator {
         auto search = Search();
         auto generator = MoveGenerator();
         auto distribution = std::uniform_int_distribution<>(params.minNodes, params.maxNodes);
-        Move moveToExplore;
+        Move moveToExplore(0, 0, MoveFlags::NULL_MOVE);
 
         for (int move = 0; move < params.maxPly; move++) {
             if(move < params.totalRandomPly){
@@ -67,8 +113,8 @@ class DatasetGenerator {
                 if(legalMoves.empty()){
                     break;
                 }
-                int moveToMake = std::uniform_int_distribution<>(0, (int)legalMoves.size())(randomGenerator);
-                moveToExplore = generator[moveToMake];
+                int moveToMake = std::uniform_int_distribution<>(0, (int)legalMoves.size() - 1)(randomGenerator);
+                moveToExplore = legalMoves[moveToMake];
             } else {
                 int nodesToExplore = distribution(randomGenerator);
                 auto explorationParams = SearchParams{20, -1, nodesToExplore};
@@ -81,7 +127,6 @@ class DatasetGenerator {
             if (moveToExplore.flags & MoveFlags::NULL_MOVE) {
                 break; //end of the game
             }
-
 
             board.makeMove(moveToExplore);
             addToDataset(board, params);
@@ -98,20 +143,9 @@ class DatasetGenerator {
         }
 
         positionSet.insert(board.zobristKey.value);
-
-        auto search = Search();
-        auto searchParams = SearchParams{params.evalDepth, -1, -1};
-
-        search.setBoard(board);
-        auto [bestMove, eval] = search.findBestMove(searchParams);
-
         positionsGenerated += 1;
 
-        outputFile << board.toFen() << ",";
-        outputFile << eval << ",";
-        outputFile << Board::moveToString(bestMove) << ",";
-        outputFile << Metric<NODES_SEARCHED>::get() + Metric<Q_NODES_SEARCHED>::get() - Metric<LEAF_NODES_SEARCHED>::get() << ",";
-        outputFile << std::endl;
+        outputFile << board.toFen() << std::endl;
 
         if(positionsGenerated % 5 == 0){
             std::cout << "Generated: " << positionsGenerated << " | " << (positionsGenerated / timer.getSecondsFromStart()) << " fen / s" << std::endl;
@@ -132,8 +166,14 @@ class DatasetGenerator {
                 params.evalDepth = std::stoi(tokens[i + 1]);
             } else if (tokens[i] == "count") {
                 params.count = std::stoi(tokens[i + 1]);
-            } else if (tokens[i] == "file") {
+            } else if (tokens[i] == "outputfile") {
                 params.outputFileName = tokens[i + 1];
+            } else if(tokens[i] == "inputfile") {
+                params.inputFileName = tokens[i + 1];
+            } else if(tokens[i] == "skip"){
+                params.skip = std::stoi(tokens[i + 1]);
+            } else if(tokens[i] == "start"){
+                params.start = std::stoi(tokens[i + 1]);
             } else if (tokens[i] == "saveRate") {
                 params.saveRate = std::stof(tokens[i + 1]);
             } else if (tokens[i] == "seed") {
@@ -143,7 +183,6 @@ class DatasetGenerator {
                 exit(1);
             }
         }
-
         return params;
     }
 

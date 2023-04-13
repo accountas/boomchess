@@ -14,16 +14,24 @@ void Search::startSearch(const SearchParams &params) {
     searchStarted = Timer::getMillis();
     searchParams = params;
 
-    std::thread([&]() { rootSearch(); }).detach();
+    std::thread([&]() { rootSearch(0); }).detach();
 }
 
 std::pair<Move, int> Search::findBestMove(const SearchParams &params){
     searchActive = true;
     searchParams = params;
-    return rootSearch();
+    return rootSearch(0);
 }
 
-std::pair<Move, int> Search::rootSearch() {
+std::vector<int> Search::getEvalPerDepth(const SearchParams &params){
+    std::vector<int> evaluations(params.depthLimit, 0);
+    searchActive = true;
+    searchParams = params;
+    rootSearch(&evaluations);
+    return evaluations;
+}
+
+std::pair<Move, int> Search::rootSearch(std::vector<int> *evaluations) {
     auto boardStart = board;
 
     Move bestMove(0, 0, MoveFlags::NULL_MOVE);
@@ -77,6 +85,9 @@ std::pair<Move, int> Search::rootSearch() {
                 goto end;
             }
 
+        }
+        if(evaluations != nullptr){
+            (*evaluations)[currentDepth] = bestEval;
         }
         UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
     }
