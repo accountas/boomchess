@@ -1,26 +1,32 @@
 #include "Evaluator.h"
 #include "Common.h"
 #include "EvalParms.h"
+#include "nnue.h"
 
 Evaluator::Evaluator() {
 
 }
 
 int Evaluator::evaluateRelative(Board &board) {
-    return evaluate(board) * (board.moveColor == WHITE ? 1 : -1);
-}
-
-int Evaluator::evaluate(Board &board) {
     generator.generateMoves(board);
 
     int winState = getWinState(board);
 
     if (winState == WinState::LOST) {
-        return board.moveColor == WHITE ? EVAL_MIN : EVAL_MAX;
+        return EVAL_MIN;
     }
     if (winState == WinState::TIE) {
         return 0;
     }
+
+    if(board.nnue){
+        return board.nnue->evaluate(board.moveColor);
+    } else {
+        return evaluate(board) * (board.moveColor == WHITE ? 1 : -1);
+    }
+}
+
+int Evaluator::evaluate(Board &board) {
 
     int phase = getPhase(board);
     int score = 0;
@@ -33,6 +39,36 @@ int Evaluator::evaluate(Board &board) {
     score = score * (100 - getKingDistanceFactor(board, phase)) / 100;
 
     return score;
+}
+
+int Evaluator::getWinState(Board &board) {
+    if (board.isKingCaptured())
+        return WinState::LOST;
+
+    if (board.numHalfMoves >= 100) {
+        return WinState::TIE;
+    }
+
+    // we will steal NNUE for a bit
+    auto tmp = board.nnue;
+    board.nnue = nullptr;
+
+    bool hasLegalMoves = false;
+    for (int i = 0; i < generator.size() && !hasLegalMoves; i++) {
+        board.makeMove(generator[i]);
+        hasLegalMoves |= board.isLegal();
+        board.unmakeMove();
+    }
+
+    //TODO: spaghetti
+    board.nnue = tmp;
+
+
+    if (!hasLegalMoves) {
+        return board.isInCheck() ? WinState::LOST : WinState::TIE;
+    }
+
+    return WinState::NORMAL;
 }
 
 int Evaluator::mobilityBonus(Board &board) {
@@ -181,27 +217,6 @@ int Evaluator::getKingDistanceFactor(const Board &board, int phase) {
     return interpolateScore(mg, eg, phase);
 }
 
-int Evaluator::getWinState(Board &board) {
-    if (board.isKingCaptured())
-        return WinState::LOST;
-
-    if (board.numHalfMoves >= 100) {
-        return WinState::TIE;
-    }
-
-    bool hasLegalMoves = false;
-    for (int i = 0; i < generator.size() && !hasLegalMoves; i++) {
-        board.makeMove(generator[i]);
-        hasLegalMoves |= board.isLegal();
-        board.unmakeMove();
-    }
-
-    if (!hasLegalMoves) {
-        return board.isInCheck() ? WinState::LOST : WinState::TIE;
-    }
-
-    return WinState::NORMAL;
-}
 
 int Evaluator::lookupSquareBonus(int idx, int piece, int color) {
     int file = Board::indexToFile(idx);

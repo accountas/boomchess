@@ -221,7 +221,7 @@ int Search::alphaBeta(int depthLeft, int alpha, int beta) {
     }
 
     if (tTable.at(hash).zobristKey == 0) {
-        Metric<TT_ENTRIES>::inc();
+        Metric<TT_WRITTEN>::inc();
     }
     tTable.store(hash, ttEntry);
 

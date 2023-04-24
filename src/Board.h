@@ -5,10 +5,12 @@
 #include <array>
 #include <vector>
 #include <stack>
+#include <memory>
 #include "Piece.h"
 #include "Common.h"
 #include "Move.h"
 #include "ZobristKey.h"
+#include "nnue.h"
 
 typedef std::array<Piece, 128> BoardArray;
 typedef std::array<std::array<std::array<int, 10>, 7>, 2> PieceArray;
@@ -24,98 +26,65 @@ class Board {
           int en_passant_square,
           int num_half_moves);
 
-    //Piece representation
+    // Piece representation
     BoardArray board;
     PieceArray pieces;
     PieceCountArray pieceCounts;
 
-    //Game state
+    // Game state
     int moveColor;
     int enPassantSquare;
     int numHalfMoves;
     bool madeNullMove = false;
     std::array<int, 2> castlingRights;
 
-    //hash
+    // hash
     ZobristKey zobristKey{};
 
+    // NNUE
+    NNUE::NNUE *nnue = nullptr;
+
+    // fen parsing stuff
     static Board fromFen(const std::string &fen);
+    [[nodiscard]] std::string toFen() const;
 
-    [[maybe_unused]] std::string toString() const;
-
+    // move making
     void makeMove(const Move &move);
     bool tryMakeMove(const Move &move);
     void unmakeMove();
-    void addPiece(int idx, Piece piece);
-    void removePiece(int idx, bool capture = false);
-    void movePiece(int from, int to);
 
-    bool isAttacked(int idx) const;
-    bool isLegal() const;
-    bool isRepetition() const;
-    bool kingsTouch() const {
-        int whiteKing = pieces[WHITE][KING][0];
-        int blackKing = pieces[BLACK][KING][0];
-        return attackDirection[KING][0x77 + whiteKing - blackKing] != 0;
-    }
-    bool isKingCaptured() const {
-        return pieceCounts[moveColor][KING] == 0;
-    };
-    bool onlyPawns() const {
-        for(int piece : {KNIGHT, BISHOP, ROOK, QUEEN}){
-            if(pieceCounts[moveColor][piece] > 0) return false;
-        }
-        return true;
-    };
-    bool isInCheck() const {
-        return !isKingCaptured() && !kingsTouch() && isAttacked(pieces[moveColor][KING][0]);
-    }
-    bool isEnemy(int idx) const {
-        return !isEmpty(idx) && board[idx].color() != moveColor;
-    }
-    bool isEmpty(int idx) const {
-        return board[idx].piece == PieceType::EMPTY;
-    }
-    static bool inBounds(int idx) {
-        return !(idx & 0x88);
-    }
-    static int positionToIndex(int file, int rank) {
-        return (rank << 4) + file;
-    }
-    static int indexToFile(int index) {
-        return index & 0b111;
-    }
-    static int indexToRank(int index) {
-        return (index & 0b1110000) >> 4;
-    }
-    static int stringToIndex(const std::string &square) {
-        return positionToIndex(square[0] - 'a', square[1] - '0' - 1);
-    }
-    [[maybe_unused]] static Move stringToMove(const std::string &move, int flags) {
-        int from = stringToIndex(move.substr(0, 2));
-        int to = stringToIndex(move.substr(2));
-        return {from, to, flags};
-    }
+    // state checks
+    [[nodiscard]] bool isAttacked(int idx) const;
+    [[nodiscard]] bool isLegal() const;
+    [[nodiscard]] bool isRepetition() const;
+    [[nodiscard]] bool kingsTouch() const;
+    [[nodiscard]] bool isKingCaptured() const;
+    [[nodiscard]] bool onlyPawns() const;
+    [[nodiscard]] bool isInCheck() const;
+
+    // Square checks
+    [[nodiscard]] bool isEnemy(int idx) const;
+    [[nodiscard]] bool isEmpty(int idx) const;
+    static bool inBounds(int idx);
+
+    // conversions
+    [[nodiscard]] std::string toString() const;
+    static Move stringToMove(const std::string &move, int flags);
     static std::string moveToString(const Move &move);
-    static std::string indexToString(int idx) {
-        char file = 'a' + indexToFile(idx);
-        char rank = '1' + indexToRank(idx);
-        return {file, rank};
-    }
+    static int positionToIndex(int file, int rank);
+    static int indexToFile(int index);
+    static int indexToRank(int index);
+    static std::string indexToString(int idx);
+    static int stringToIndex(const std::string &square);
+
+    // Operators
     Piece const &operator[](int index) {
         return board[index];
     }
     Piece operator[](int index) const {
         return board[index];
     }
-    [[maybe_unused]] std::string getMovesMade() {
-        std::string result;
-        for (const auto &move : moveHistory) {
-            result += moveToString(move.move);
-            result += " ";
-        }
-        return result;
-    }
+
 
  private:
     struct MoveInfo {
@@ -133,6 +102,11 @@ class Board {
         std::array<int, 2> previousCastlingRights{};
     };
 
+    // used in move making
+    void addPiece(int idx, Piece piece, bool unmake);
+    void removePiece(int idx, bool capture, bool unmake);
+    void movePiece(int from, int to, bool unmake);
+
     //fen parsing
     static std::tuple<BoardArray, PieceArray, PieceCountArray> extractPiecesFromFen(const std::string &fen);
 
@@ -149,6 +123,5 @@ class Board {
 
     //attacker check utils
     std::array<std::array<int, 256>, 7> attackDirection{};
-
     void precalculateAttackTable();
 };

@@ -1,6 +1,7 @@
 #include <tuple>
 #include <functional>
 #include "Board.h"
+#include "nnue.h"
 
 Board::Board(const BoardArray &board,
              const PieceArray &pieces,
@@ -101,15 +102,15 @@ void Board::makeMove(const Move &move) {
         captureHistory.emplace_back(move.from, board[move.from]);
         captureHistory.emplace_back(capturedIdx, board[capturedIdx]);
 
-        removePiece(capturedIdx, true);
-        removePiece(move.from);
+        removePiece(capturedIdx, true, false);
+        removePiece(move.from, false, false);
 
         for (int direction : explosionDirections) {
             int idx = move.to + direction;
             if (Board::inBounds(idx) && !isEmpty(idx) && board[idx].type() != PieceType::PAWN) {
                 moveInfo.numCaptured++;
                 captureHistory.emplace_back(idx, board[idx]);
-                removePiece(idx, true);
+                removePiece(idx, true, false);
             }
         }
     }
@@ -117,9 +118,9 @@ void Board::makeMove(const Move &move) {
     //promotion
     if (move.flags & MoveFlags::PROMOTION_SUBMASK) {
         if (move.flags & MoveFlags::CAPTURE) {
-            removePiece(move.to);
+            removePiece(move.to, false, false);
         } else {
-            removePiece(move.from);
+            removePiece(move.from, false, false);
         }
 
         int pieceType;
@@ -135,24 +136,24 @@ void Board::makeMove(const Move &move) {
             pieceType |= BLACK_FLAG;
         }
         auto newPiece = Piece(pieceType, -1);
-        addPiece(move.to, newPiece);
+        addPiece(move.to, newPiece, false);
     }
 
     //castling
     if (move.flags & MoveFlags::CASTLE_SUBMASK) {
-        movePiece(move.from, move.to);
+        movePiece(move.from, move.to, false);
         if (move.flags & MoveFlags::CASTLE_LEFT) {
-            movePiece(positionToIndex(0, indexToRank(move.to)), move.to + Direction::RIGHT);
+            movePiece(positionToIndex(0, indexToRank(move.to)), move.to + Direction::RIGHT, false);
         }
         if (move.flags & MoveFlags::CASTLE_RIGHT) {
-            movePiece(positionToIndex(7, indexToRank(move.to)), move.to + Direction::LEFT);
+            movePiece(positionToIndex(7, indexToRank(move.to)), move.to + Direction::LEFT, false);
         }
         setCastlingRights(moveColor, NO_CASTLE);
     }
 
     //quiet move
     if ((move.flags & ~(MoveFlags::DOUBLE_PAWN | MoveFlags::PAWN_MOVE)) == 0 && !(move.flags & MoveFlags::NULL_MOVE)) {
-        movePiece(move.from, move.to);
+        movePiece(move.from, move.to, false);
     }
 
     //for undo
@@ -161,6 +162,12 @@ void Board::makeMove(const Move &move) {
 
     //change player color
     flipMoveColor();
+
+    if(nnue){
+        nnue->accumulator.increaseDepth();
+        nnue->accumulator.applyStagedChanges();
+    }
+
 }
 
 void Board::unmakeMove() {
@@ -181,41 +188,46 @@ void Board::unmakeMove() {
         for (int i = 0; i < lastMoveUndo.numCaptured; i++) {
             auto pieceToRestore = captureHistory.back();
             captureHistory.pop_back();
-            addPiece(pieceToRestore.first, pieceToRestore.second);
+            addPiece(pieceToRestore.first, pieceToRestore.second, true);
         }
     }
 
     //restore promotion
     if (move.flags & MoveFlags::PROMOTION_SUBMASK) {
         if (move.flags & MoveFlags::CAPTURE) {
-            removePiece(move.from);
+            removePiece(move.from, false, true);
         } else {
-            removePiece(move.to);
+            removePiece(move.to, false, true);
         }
 
         int colorFlag = moveColor == WHITE ? 0 : BLACK_FLAG;
         auto newPiece = Piece(PAWN | colorFlag, -1);
-        addPiece(move.from, newPiece);
+        addPiece(move.from, newPiece, true);
     }
 
     //restore castling
     if (move.flags & MoveFlags::CASTLE_SUBMASK) {
-        movePiece(move.to, move.from);
+        movePiece(move.to, move.from, true);
         if (move.flags & MoveFlags::CASTLE_LEFT) {
-            movePiece(move.to + Direction::RIGHT, positionToIndex(0, indexToRank(move.to)));
+            movePiece(move.to + Direction::RIGHT, positionToIndex(0, indexToRank(move.to)), true);
         }
         if (move.flags & MoveFlags::CASTLE_RIGHT) {
-            movePiece(move.to + Direction::LEFT, positionToIndex(7, indexToRank(move.to)));
+            movePiece(move.to + Direction::LEFT, positionToIndex(7, indexToRank(move.to)), true);
         }
     }
 
     //restore quiet move
     if ((move.flags & ~(MoveFlags::DOUBLE_PAWN | MoveFlags::PAWN_MOVE)) == 0 && !(move.flags & MoveFlags::NULL_MOVE)) {
-        movePiece(move.to, move.from);
+        movePiece(move.to, move.from, true);
     }
+
+    if(nnue){
+        nnue->accumulator.decreaseDepth();
+    }
+
 }
 
-void Board::movePiece(int from, int to) {
+void Board::movePiece(int from, int to, bool unmake) {
     auto piece = board[from];
     zobristKey.flipPiece(from, piece);
 
@@ -224,9 +236,14 @@ void Board::movePiece(int from, int to) {
     pieces[piece.color()][piece.type()][piece.pieceListLocation] = to;
 
     zobristKey.flipPiece(to, piece);
+
+    if(!unmake && nnue){
+        nnue->accumulator.stageChange<false>(to, piece.type(), piece.color());
+        nnue->accumulator.stageChange<true>(from, piece.type(), piece.color());
+    }
 }
 
-void Board::addPiece(int idx, Piece piece) {
+void Board::addPiece(int idx, Piece piece, bool unmake) {
     int currentCount = pieceCounts[piece.color()][piece.type()];
 
     piece.pieceListLocation = currentCount;
@@ -235,9 +252,13 @@ void Board::addPiece(int idx, Piece piece) {
 
     board[idx] = piece;
     zobristKey.flipPiece(idx, piece);
+
+    if(!unmake && nnue){
+        nnue->accumulator.stageChange<false>(idx, piece.type(), piece.color());
+    }
 }
 
-void Board::removePiece(int idx, bool capture) {
+void Board::removePiece(int idx, bool capture, bool unmake) {
     Piece piece = board[idx];
     zobristKey.flipPiece(idx, piece);
 
@@ -263,6 +284,10 @@ void Board::removePiece(int idx, bool capture) {
 
     pieceCounts[piece.color()][piece.type()]--;
     board[idx] = Piece();
+
+    if(!unmake && nnue){
+        nnue->accumulator.stageChange<true>(idx, piece.type(), piece.color());
+    }
 }
 
 void Board::setEnPassantSquare(int square) {
@@ -399,6 +424,54 @@ bool Board::tryMakeMove(const Move &move) {
         return false;
     }
     return true;
+}
+bool Board::kingsTouch() const {
+    int whiteKing = pieces[WHITE][KING][0];
+    int blackKing = pieces[BLACK][KING][0];
+    return attackDirection[KING][0x77 + whiteKing - blackKing] != 0;
+}
+bool Board::isKingCaptured() const {
+    return pieceCounts[moveColor][KING] == 0;
+}
+bool Board::onlyPawns() const {
+    for(int piece : {KNIGHT, BISHOP, ROOK, QUEEN}){
+        if(pieceCounts[moveColor][piece] > 0) return false;
+    }
+    return true;
+}
+bool Board::isInCheck() const {
+    return !isKingCaptured() && !kingsTouch() && isAttacked(pieces[moveColor][KING][0]);
+}
+bool Board::isEnemy(int idx) const {
+    return !isEmpty(idx) && board[idx].color() != moveColor;
+}
+bool Board::isEmpty(int idx) const {
+    return board[idx].piece == PieceType::EMPTY;
+}
+bool Board::inBounds(int idx) {
+    return !(idx & 0x88);
+}
+int Board::positionToIndex(int file, int rank) {
+    return (rank << 4) + file;
+}
+int Board::indexToFile(int index) {
+    return index & 0b111;
+}
+int Board::indexToRank(int index) {
+    return (index & 0b1110000) >> 4;
+}
+int Board::stringToIndex(const std::string &square) {
+    return positionToIndex(square[0] - 'a', square[1] - '0' - 1);
+}
+Move Board::stringToMove(const std::string &move, int flags) {
+    int from = stringToIndex(move.substr(0, 2));
+    int to = stringToIndex(move.substr(2));
+    return {from, to, flags};
+}
+std::string Board::indexToString(int idx) {
+    char file = 'a' + indexToFile(idx);
+    char rank = '1' + indexToRank(idx);
+    return {file, rank};
 }
 
 Board::MoveInfo::MoveInfo(const Move &move,
