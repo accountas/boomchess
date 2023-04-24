@@ -103,7 +103,7 @@ void UCI::sendOptions() {
               << std::endl;
 
     // Evaluation type
-    std::cout << "option name EvalType type combo default HCE_FULL var HCE_FULL NNUE HCE_SIMPLE" << std::endl;
+    std::cout << "option name EvalType type combo default FULL var FULL var SIMPLE" << std::endl;
 
     // NNUE path
     std::cout << "option name NNUEPath type string default <empty>" << std::endl;
@@ -123,11 +123,13 @@ void UCI::setOption(
     if (option == "Hash") {
         Config::transpositionTableSize = std::stoi(value);
     } else if (option == "NNUEPath") {
-        Config::nnuePath = value;
+        Config::nnuePath = value == "<empty>" ? "" : value;
     } else if (option == "EvalType") {
         if (value == "FULL") Config::hceType = Config::HceType::FULL;
         else if (value == "SIMPLE") Config::hceType = Config::HceType::SIMPLE;
         else { std::cout << "Unrecognized value for EvalType" << std::endl; }
+    } else if(option == "UCI_Variant"){
+        return;
     } else {
         std::cout << "Unrecognized Option name!" << std::endl;
     }

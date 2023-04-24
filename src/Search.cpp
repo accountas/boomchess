@@ -76,10 +76,6 @@ void Search::rootSearch() {
     }
 
     end:
-    //if finnish earlier than move time limit, wait till clock stops
-    while (searchParams.timeLimit > 0 && searchActive) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
 
     UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
 
@@ -305,7 +301,7 @@ bool Search::canSearch() {
 }
 
 void Search::resetCache() {
-    Metric<TT_ENTRIES>::set(0);
+    Metric<TT_WRITTEN>::set(0);
     tTable.clear();
     generator.clearHistory();
     generator.clearKillers();

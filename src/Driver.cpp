@@ -75,7 +75,7 @@ void Driver::uciMode() {
         } else if (tokens[0] == "setoption") {
             UCI::setOption(tokens);
             // TODO: Ugly ifs
-            if (tokens[2] == "NNUEPath"){
+            if (tokens[2] == "NNUEPath" && !Config::nnuePath.empty()){
                 nnue.loadNetwork(Config::nnuePath);
             }
             if (tokens[2] == "Hash"){
