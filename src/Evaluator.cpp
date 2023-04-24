@@ -4,7 +4,7 @@
 #include "nnue.h"
 
 Evaluator::Evaluator() {
-    nnue.loadNetwork(R"(C:\Users\marty\Desktop\Kursinis\nets\second.nnue)");
+
 }
 
 int Evaluator::evaluateRelative(Board &board) {

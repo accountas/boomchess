@@ -9,7 +9,6 @@ class Evaluator {
     int evaluateRelative(Board &board);
 
  private:
-    NNUE::NNUE nnue;
     std::array<int, 10> pieceWeights{};
     MoveGenerator generator{true};
 
