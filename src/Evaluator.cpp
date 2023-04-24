@@ -13,7 +13,7 @@ int Evaluator::evaluateRelative(Board &board) {
     int winState = getWinState(board);
 
     if (winState == WinState::LOST) {
-        return (board.moveColor == WHITE ? 1 : -1) * (board.moveColor == WHITE ? EVAL_MIN : EVAL_MAX);
+        return EVAL_MIN;
     }
     if (winState == WinState::TIE) {
         return 0;
