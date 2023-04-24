@@ -44,6 +44,11 @@ void Driver::uciMode() {
     std::cout << "option name UCI_Variant type combo default atomic var atomic" << std::endl;
     std::cout << "uciok" << std::endl;
 
+    NNUE::NNUE nnue;
+    nnue.loadNetwork(R"(C:\Users\marty\Desktop\Kursinis\nets\second.nnue)");
+
+//    nnue.loadNetwork("/home/jeff/bakalauras/first.nnue");
+
     Search search;
 
     std::string input;
@@ -59,6 +64,20 @@ void Driver::uciMode() {
             search.resetCache();
         } else if (tokens[0] == "position") {
             Board board = UCI::parsePosition(tokens);
+            board.nnue = &nnue;
+            nnue.accumulator.setDepth(0);
+            nnue.accumulator.init();
+            for(int color : {WHITE, BLACK}){
+                for(int piece : PieceTypes){
+                    for(int i = 0; i < board.pieceCounts[color][piece]; i++){
+                        int pos = board.pieces[color][piece][i];
+                        nnue.accumulator.stageChange<false>(pos, piece, color);
+                    }
+                }
+            }
+            nnue.accumulator.applyStagedChanges(false);
+
+
             search.setBoard(board);
         } else if (tokens[0] == "go") {
             SearchParams params = UCI::parseGo(tokens);

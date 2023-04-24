@@ -87,4 +87,79 @@ std::tuple<BoardArray, PieceArray, PieceCountArray> Board::extractPiecesFromFen(
     return std::make_tuple(board, pieces, pieceCounts);
 }
 
+std::string Board::toFen() const {
+    std::string fen = "";
+
+    //build pieces
+    for(int rank = 7; rank >= 0; rank--){
+        int empty = 0;
+        for(int file = 0; file < 8; file++){
+            int index = positionToIndex(file, rank);
+
+            if(isEmpty(index)){
+                empty++;
+                continue;
+            }
+
+            if(empty > 0){
+                fen += std::to_string(empty);
+                empty = 0;
+            }
+
+            char pieceChar = board[index].toChar();
+            fen.push_back(pieceChar);
+        }
+        if(empty > 0){
+            fen += std::to_string(empty);
+        }
+        if(rank >= 1){
+            fen += "/";
+        }
+    }
+
+    fen += " ";
+
+    //active side
+    if(moveColor == WHITE){
+        fen += "w";
+    } else {
+        fen += "b";
+    }
+
+    fen += " ";
+
+    //castling rights
+    std::string rightsString;
+    if(castlingRights[WHITE] & CastlingRight::KING_SIDE)
+        rightsString += "K";
+    if(castlingRights[WHITE] & CastlingRight::QUEEN_SIDE)
+        rightsString += "Q";
+    if(castlingRights[BLACK] & CastlingRight::KING_SIDE)
+        rightsString += "k";
+    if(castlingRights[BLACK] & CastlingRight::QUEEN_SIDE)
+        rightsString += "q";
+    if(rightsString.empty()){
+        rightsString = "-";
+    }
+    fen += rightsString;
+
+    fen += " ";
+
+    //en passant target
+    if(enPassantSquare == -1){
+        fen += "-";
+    } else {
+        fen += indexToString(enPassantSquare);
+    }
+
+    fen += " ";
+
+    //half moves
+    fen += std::to_string(numHalfMoves);
+
+    fen += " ";
+
+
+    return fen;
+}
 
