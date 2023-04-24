@@ -7,7 +7,6 @@ const bool USE_METRICS = true;
 const int MAX_DEPTH = 128;
 const int EVAL_MAX = 1e5;
 const int EVAL_MIN = -EVAL_MAX;
-const int TT_SIZE = 1 << 23;
 const int KILLER_MOVES_N = 2;
 const int NULL_MOVE_R = 2;
 const int MAX_HISTORY_TABLE_VAL = 250;
@@ -21,6 +20,7 @@ enum MetricTypes : int {
     CACHE_HITS,
     PV_HITS,
     PV_MISSES,
+    TT_WRITTEN,
     TT_ENTRIES
 };
 

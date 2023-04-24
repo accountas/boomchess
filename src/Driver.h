@@ -15,4 +15,5 @@ class Driver {
     std::vector<std::string> tokenizeString(const std::string &s, char delimiter);
     void uciMode();
     void perftTest();
+    static void initNnueFromBoard(Board &board, NNUE::NNUE &nnue);
 };

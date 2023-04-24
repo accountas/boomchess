@@ -3,11 +3,17 @@
 #include <cstdint>
 #include <iostream>
 #include "Move.h"
+#include "Config.h"
+#include "Metrics.h"
+#include "Common.h"
 
-template<typename T, int N>
+template<typename T>
 class TranspositionTable {
  public:
+    int N;
     TranspositionTable() {
+        N = getNumEntriesNeeded();
+        Metric<TT_ENTRIES>::set(N);
         entries = new T[N];
     }
     ~TranspositionTable() {
@@ -27,7 +33,17 @@ class TranspositionTable {
             entries[i] = T{};
         }
     }
+    void resize() {
+        delete[] entries;
+        N = getNumEntriesNeeded();
+        entries = new T[N];
+        Metric<TT_ENTRIES>::set(N);
+    }
  private:
+    int getNumEntriesNeeded(){
+        uint64_t numEntries = Config::transpositionTableSize * 1000000LL / sizeof(T);
+        return (1 << (64 - __builtin_clzll(numEntries))); //make it into the smallest power of two for fast mod
+    }
     T *entries;
 };
 

@@ -8,10 +8,7 @@ namespace NNUE {
         layer_2.load(fileStream, Q_FACTOR, Q_FACTOR * Q_FACTOR);
         layer_3.load(fileStream, Q_FACTOR, Q_FACTOR * Q_FACTOR);
 
-        for(int i = 0; i < L1_SIZE; i++){
-            accumulator[WHITE][i] = static_cast<QT>(layer_1.bias[i]);
-            accumulator[BLACK][i] = static_cast<QT>(layer_1.bias[i]);
-        }
+        accumulator.init();
     }
 
     int NNUE::evaluate(int sideToMove) {

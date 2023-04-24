@@ -15,6 +15,8 @@ class Search {
     void resetCache();
     void killSearch();
 
+    TranspositionTable<SearchEntry> tTable{};
+
  private:
     Board board;
     MoveGenerator generator;
@@ -23,7 +25,6 @@ class Search {
     long long searchStarted = 0;
     bool searchActive = false;
 
-    TranspositionTable<SearchEntry, TT_SIZE> tTable{};
     int quiescence(int alpha, int beta);
     int alphaBeta(int depthLeft, int alpha, int beta);
     void rootSearch();

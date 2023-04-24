@@ -5,7 +5,7 @@
 #include "Board.h"
 #include "Search.h"
 #include "UCI.h"
-#include <bitset>
+#include "Config.h"
 
 void Driver::start() {
     std::string input;
@@ -38,18 +38,13 @@ void Driver::start() {
 }
 
 void Driver::uciMode() {
-
-    std::cout << "id name BoomChess" << std::endl;
-    std::cout << "id author Martynas Cibulskis" << std::endl;
-    std::cout << "option name UCI_Variant type combo default atomic var atomic" << std::endl;
-    std::cout << "uciok" << std::endl;
-
-    NNUE::NNUE nnue;
-    nnue.loadNetwork(R"(C:\Users\marty\Desktop\Kursinis\nets\second.nnue)");
-
-//    nnue.loadNetwork("/home/jeff/bakalauras/first.nnue");
+    UCI::engineInfo();
+    UCI::sendOptions();
+    UCI::uciOk();
 
     Search search;
+    Board board = Board::fromFen(DEFAULT_FEN);
+    NNUE::NNUE nnue;
 
     std::string input;
     while (true) {
@@ -63,24 +58,14 @@ void Driver::uciMode() {
         } else if (tokens[0] == "ucinewgame") {
             search.resetCache();
         } else if (tokens[0] == "position") {
-            Board board = UCI::parsePosition(tokens);
-            board.nnue = &nnue;
-            nnue.accumulator.setDepth(0);
-            nnue.accumulator.init();
-            for(int color : {WHITE, BLACK}){
-                for(int piece : PieceTypes){
-                    for(int i = 0; i < board.pieceCounts[color][piece]; i++){
-                        int pos = board.pieces[color][piece][i];
-                        nnue.accumulator.stageChange<false>(pos, piece, color);
-                    }
-                }
-            }
-            nnue.accumulator.applyStagedChanges(false);
-
-
-            search.setBoard(board);
+            board = UCI::parsePosition(tokens);
         } else if (tokens[0] == "go") {
             SearchParams params = UCI::parseGo(tokens);
+            if(!Config::nnuePath.empty()){
+                board.nnue = &nnue;
+                initNnueFromBoard(board, nnue);
+            }
+            search.setBoard(board);
             search.startSearch(params);
         } else if (tokens[0] == "stop") {
             search.killSearch();
@@ -88,11 +73,32 @@ void Driver::uciMode() {
             search.killSearch();
             break;
         } else if (tokens[0] == "setoption") {
-            continue;
+            UCI::setOption(tokens);
+            // TODO: Ugly ifs
+            if (tokens[2] == "NNUEPath"){
+                nnue.loadNetwork(Config::nnuePath);
+            }
+            if (tokens[2] == "Hash"){
+                search.tTable.resize();
+            }
         } else {
             std::cout << "Unknown Input: " << input << std::endl;
         }
     }
+}
+
+void Driver::initNnueFromBoard(Board &board, NNUE::NNUE &nnue) {
+    nnue.accumulator.setDepth(0);
+    nnue.accumulator.init();
+    for (int color : {WHITE, BLACK}) {
+        for (int piece : PieceTypes) {
+            for (int i = 0; i < board.pieceCounts[color][piece]; i++) {
+                int pos = board.pieces[color][piece][i];
+                nnue.accumulator.stageChange<false>(pos, piece, color);
+            }
+        }
+    }
+    nnue.accumulator.applyStagedChanges(false);
 }
 
 std::vector<std::string> Driver::tokenizeString(const std::string &s, char delimiter) {

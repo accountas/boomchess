@@ -126,7 +126,6 @@ namespace NNUE {
         NNUE() : accumulator(&layer_1) {}
         void loadNetwork(const std::string &fileName);
         int evaluate(int sideToMove);
-
         NnueAccumulator<MAX_DEPTH, L1_SIZE> accumulator;
 
      private:
