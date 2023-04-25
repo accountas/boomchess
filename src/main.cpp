@@ -3,8 +3,17 @@
 #include "Driver.h"
 #include "Config.h"
 #include "Timer.h"
+#include <mpi.h>
 
 int main(int argc, char** argv) {
+
+    // MPI Start
+    MPI_Init(&argc, &argv);
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+
     // config options
     int evalDepth = 8;
     std::string inputFile;
@@ -12,7 +21,17 @@ int main(int argc, char** argv) {
 
     // read params
     std::string input;
-    getline(std::cin, input);
+    if(rank == 0){
+        std::getline(std::cin, input);
+    }
+    
+    //share input
+    int inputSize = input.size();
+    MPI_Bcast(&inputSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    if (rank != 0) input.resize(inputSize);
+    MPI_Bcast(const_cast<char*>(input.data()), inputSize, MPI_CHAR, 0, MPI_COMM_WORLD);
+
+    std::cout << "Process: " << rank << " received: " << input << std::endl;
 
     // split to words
     std::vector<std::string> tokens;
@@ -41,14 +60,14 @@ int main(int argc, char** argv) {
         }
     }
 
-    int start = 0;
-    int skip = 0;
+    int start = rank;
+    int skip = size;
     int linesRead = 0;
     int fensProcessed = 0;
 
     // files
     std::ifstream stream(inputFile);
-    std::ofstream output("evaluated_" + std::to_string(start) + ".csv");
+    std::ofstream output("evaluated_" + std::to_string(rank) + ".csv");
 
     // Go through input data
     Timer timer;
@@ -87,4 +106,5 @@ int main(int argc, char** argv) {
         }
     }
 
+    MPI_Finalize();
 }
