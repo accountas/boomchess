@@ -22,4 +22,5 @@ class Evaluator {
     static int getKingDistanceFactor(const Board &board, int phase);
     int getPhase(const Board &board);
     static int interpolateScore(int midgame, int endgame, int phase);
+    int evalPiecesSimple(const Board &board);
 };

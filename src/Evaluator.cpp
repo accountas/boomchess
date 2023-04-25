@@ -2,6 +2,7 @@
 #include "Common.h"
 #include "EvalParms.h"
 #include "nnue.h"
+#include "Config.h"
 
 Evaluator::Evaluator() {
 
@@ -19,7 +20,7 @@ int Evaluator::evaluateRelative(Board &board) {
         return 0;
     }
 
-    if(board.nnue){
+    if (board.nnue) {
         return board.nnue->evaluate(board.moveColor);
     } else {
         return evaluate(board) * (board.moveColor == WHITE ? 1 : -1);
@@ -28,15 +29,19 @@ int Evaluator::evaluateRelative(Board &board) {
 
 int Evaluator::evaluate(Board &board) {
 
-    int phase = getPhase(board);
     int score = 0;
 
-    score += materialAdvantage(board);
-    score += evalPieces(board, phase);
-    score += mobilityBonus(board);
-    score += kingSafety(board);
-
-    score = score * (100 - getKingDistanceFactor(board, phase)) / 100;
+    if (Config::hceType == Config::HceType::FULL) {
+        int phase = getPhase(board);
+        score += materialAdvantage(board);
+        score += evalPieces(board, phase);
+        score += mobilityBonus(board);
+        score += kingSafety(board);
+        score = score * (100 - getKingDistanceFactor(board, phase)) / 100;
+    } else if (Config::hceType == Config::HceType::SIMPLE) {
+        score += materialAdvantage(board);
+        score += evalPiecesSimple(board);
+    }
 
     return score;
 }
@@ -62,7 +67,6 @@ int Evaluator::getWinState(Board &board) {
 
     //TODO: spaghetti
     board.nnue = tmp;
-
 
     if (!hasLegalMoves) {
         return board.isInCheck() ? WinState::LOST : WinState::TIE;
@@ -162,7 +166,6 @@ int Evaluator::evalPieces(Board &board, int phase) {
             passedPawnBonus += EvalParams::PASSED_PAWN_BONUS[relativeRank - 1] * mul;
         }
 
-
     }
 
     unsafeSquarePenalty = interpolateScore(unsafeSquarePenalty * 2, unsafeSquarePenalty / 2, phase);
@@ -217,7 +220,6 @@ int Evaluator::getKingDistanceFactor(const Board &board, int phase) {
     return interpolateScore(mg, eg, phase);
 }
 
-
 int Evaluator::lookupSquareBonus(int idx, int piece, int color) {
     int file = Board::indexToFile(idx);
     int rank = Board::indexToRank(idx);
@@ -237,5 +239,25 @@ int Evaluator::getPhase(const Board &board) {
 
 int Evaluator::interpolateScore(int midgame, int endgame, int phase) {
     return ((midgame * (256 - phase)) + (endgame * phase)) / 256;
+}
+
+int Evaluator::evalPiecesSimple(const Board &board) {
+    int totalPstBonus = 0;
+    for (int piece : PieceTypes) {
+        for (int color : {WHITE, BLACK}) {
+            int mul = color == WHITE ? 1 : -1;
+            for (int i = 0; i < board.pieceCounts[color][piece]; i++) {
+                int piecePos = board.pieces[color][piece][i];
+
+                //piece square tables
+                int file = Board::indexToFile(piecePos);
+                int rank = Board::indexToRank(piecePos);
+                int lookUpIdx = color == WHITE ? (7 - rank) * 8 + file : rank * 8 + file;
+
+                totalPstBonus += EvalParams::PieceSquareTablesSimple[piece][lookUpIdx] * mul;
+            }
+        }
+    }
+    return totalPstBonus;
 }
 
