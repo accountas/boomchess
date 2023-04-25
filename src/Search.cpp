@@ -13,8 +13,8 @@ void Search::startSearch(const SearchParams &params) {
     searchActive = true;
     searchStarted = Timer::getMillis();
     searchParams = params;
-
-    std::thread([&]() { rootSearch(); }).detach();
+    rootSearch();
+//    std::thread([&]() { rootSearch(); }).detach();
 }
 
 void Search::rootSearch() {
@@ -72,11 +72,14 @@ void Search::rootSearch() {
             }
 
         }
+        evals[currentDepth] = {bestEval, bestMove};
         UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
     }
 
     end:
 
+    depthReached = currentDepth;
+    evals[currentDepth] = {bestEval, bestMove};
     UCI::sendInfo(currentDepth + 1, bestEval, bestMove, timer.getSecondsFromStart());
 
     board = boardStart;

@@ -15,6 +15,9 @@ class Search {
     void resetCache();
     void killSearch();
 
+    std::array<std::pair<int, Move>, 32> evals;
+    int depthReached = 0;
+
     TranspositionTable<SearchEntry> tTable{};
 
  private:
