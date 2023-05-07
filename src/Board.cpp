@@ -156,12 +156,12 @@ void Board::makeMove(const Move &move) {
         movePiece(move.from, move.to, false);
     }
 
+    //change player color
+    flipMoveColor();
+
     //for undo
     moveInfo.zobristKey = zobristKey.value;
     moveHistory.push_back(moveInfo);
-
-    //change player color
-    flipMoveColor();
 
     if(nnue){
         nnue->accumulator.increaseDepth();
@@ -396,7 +396,7 @@ bool Board::isRepetition() const {
             return false;
         }
         if (lastHash == move.zobristKey) {
-            if (++seen == 3) return true;
+            if (++seen == 2) return true;
         }
     }
     return false;

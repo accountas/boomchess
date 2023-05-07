@@ -68,7 +68,7 @@ SearchParams UCI::parseGo(const std::vector<std::string> &tokens) {
     }
 
     if (depthToken == tokens.end()) {
-        params.depthLimit = MAX_DEPTH;
+        params.depthLimit = MAX_DEPTH - 25;
     } else {
         params.depthLimit = std::stoi(*std::next(depthToken));
     }
