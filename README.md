@@ -4,9 +4,9 @@ WIP Atomic chess engine written in C++
 
 Reaches depths of around 10 in under 5s.
 
-Supports UCI
+Supports UCI and NNUE
 
-Around 1.1M (1.8M for perft) Nodes per second on i7-8750H. (Compiled with -O3)
+Around 1.1M (18M for perft) Nodes per second on i7-8750H. (Compiled with -O3)
 
 # Features
 Board:
@@ -29,8 +29,16 @@ Search:
     - MVV-LVA
     - Killer heuristic
     - History heuristic
+    
+NNUE:
+- (768 -> 128) * 2 -> 32 -> 32 -> 1 network
+- Close to 300 elo stronger than HCE
+- Trained on self-made dataset of 3.6M D8 positions
+- Networks and and training code can be found [here](https://github.com/accountas/boomchess-nnue-trainer) (D8_FULL.nnue is the strongest) 
+- Enabled by UCI option NNUEPath
 
-Evaluation:
+
+Hand crafted evaluation:
 
 - Material
 - Piece-square tables
